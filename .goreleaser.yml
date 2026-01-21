@@ -1,74 +1,75 @@
-archives:
-  - files:
-      - src: LICENSE
-        dst: LICENSE.txt
-    format: zip
-    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+# GoReleaser configuration for Terraform Provider
+# See: https://goreleaser.com/cookbooks/terraform-provider/
+
+version: 2
+
 before:
   hooks:
-    - 'go mod download'
+    - go mod tidy
+
 builds:
-  - # Binary naming only required for Terraform CLI 0.12
-    binary: '{{ .ProjectName }}_v{{ .Version }}_x5'
-    env:
+  - env:
       - CGO_ENABLED=0
+    mod_timestamp: '{{ .CommitTimestamp }}'
     flags:
       - -trimpath
+    ldflags:
+      - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
     goos:
-      - darwin
       - freebsd
-      - linux
       - windows
+      - linux
+      - darwin
     goarch:
-      - '386'
       - amd64
+      - '386'
       - arm
       - arm64
     ignore:
-      - goarch: arm
-        goos: windows
-      - goarch: arm64
-        goos: freebsd
-      - goarch: arm64
-        goos: windows
-    ldflags:
-      - -s -w -X main.Version={{.Version}}
-    mod_timestamp: '{{ .CommitTimestamp }}'
+      - goos: darwin
+        goarch: '386'
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+      - goos: freebsd
+        goarch: arm64
+    binary: '{{ .ProjectName }}_v{{ .Version }}'
+
+archives:
+  - format: zip
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+
 checksum:
-  algorithm: sha256
   extra_files:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
-publishers:
-  - checksum: true
-    # Terraform CLI 0.10 - 0.11 perform discovery via HTTP headers on releases.hashicorp.com
-    # For providers which have existed since those CLI versions, exclude
-    # discovery by setting the protocol version headers to 5.
-    cmd: hc-releases upload -product {{ .ProjectName }} -version {{ .Version }} -file={{ .ArtifactPath }}={{ .ArtifactName }} -header=x-terraform-protocol-version=5 -header=x-terraform-protocol-versions=5.0
-    env:
-      - HC_RELEASES_HOST={{ .Env.HC_RELEASES_HOST }}
-      - HC_RELEASES_KEY={{ .Env.HC_RELEASES_KEY }}
-    extra_files:
-      - glob: 'terraform-registry-manifest.json'
-        name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-    name: upload
-    signature: true
+  algorithm: sha256
+
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+
 release:
   extra_files:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-  ids:
-    - none
-signs:
-  - args: ["sign", "--dearmor", "--file", "${artifact}", "--out", "${signature}"]
-    artifacts: checksum
-    cmd: signore
-    signature: ${artifact}.sig
-  - args: ["sign", "--dearmor", "--file", "${artifact}", "--out", "${signature}"]
-    artifacts: checksum
-    cmd: signore
-    id: key-id
-    signature: ${artifact}.72D7468F.sig
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+
 snapshot:
   name_template: "{{ .Tag }}-next"
