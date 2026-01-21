@@ -1,4 +1,4 @@
-module github.com/hashicorp/terraform-provider-ad
+module github.com/JohanVanosmaelAcerta/terraform-provider-windowsad
 
 go 1.23.0
 

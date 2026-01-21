@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-	"github.com/hashicorp/terraform-provider-ad/ad"
+	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad"
 )
 
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
-		ProviderFunc: ad.Provider})
+		ProviderFunc: windowsad.Provider})
 }
