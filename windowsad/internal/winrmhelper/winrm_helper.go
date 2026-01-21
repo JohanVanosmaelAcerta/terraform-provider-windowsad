@@ -12,8 +12,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad/internal/config"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/packer-community/winrmcp/winrmcp"
 )
 

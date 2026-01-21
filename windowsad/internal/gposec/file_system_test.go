@@ -3,8 +3,8 @@ package gposec
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad/internal/adschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"gopkg.in/ini.v1"
 )
 

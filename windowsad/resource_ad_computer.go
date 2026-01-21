@@ -6,8 +6,8 @@ import (
 
 	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad/internal/config"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad/internal/winrmhelper"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceADComputer() *schema.Resource {
