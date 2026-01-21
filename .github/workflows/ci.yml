@@ -35,9 +35,10 @@ jobs:
 
       - name: Check formatting
         run: |
-          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          unformatted=$(gofmt -s -l . | grep -v '^vendor/' || true)
+          if [ -n "$unformatted" ]; then
             echo "Files not formatted:"
-            gofmt -s -l .
+            echo "$unformatted"
             exit 1
           fi
 
