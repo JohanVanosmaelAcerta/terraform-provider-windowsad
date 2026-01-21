@@ -8,9 +8,9 @@ import (
 
 	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad/internal/config"
 
+	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad/internal/winrmhelper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad/internal/winrmhelper"
 )
 
 func TestAccResourceADOU_basic(t *testing.T) {

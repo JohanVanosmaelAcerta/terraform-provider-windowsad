@@ -1,8 +1,8 @@
 module github.com/JohanVanosmaelAcerta/terraform-provider-windowsad
 
-go 1.23.0
+go 1.25
 
-toolchain go1.23.3
+toolchain go1.25.6
 
 require (
 	github.com/hashicorp/go-uuid v1.0.3

@@ -6,9 +6,9 @@ import (
 
 	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad/internal/config"
 
+	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad/internal/winrmhelper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/windowsad/internal/winrmhelper"
 )
 
 func resourceADGroup() *schema.Resource {

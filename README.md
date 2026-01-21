@@ -15,7 +15,7 @@ This is a maintained fork of the archived [HashiCorp terraform-provider-ad](http
 
 * [Terraform](https://www.terraform.io/downloads.html) version 1.0+
 * [Windows Server](https://www.microsoft.com/en-us/windows-server) 2012R2 or greater 
-* [Go](https://golang.org/doc/install) version 1.22+ (for development)
+* [Go](https://golang.org/doc/install) version 1.25+ (for development)
 
 ## Getting Started
 
