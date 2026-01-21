@@ -33,14 +33,14 @@ func resourceADGroupMembership() *schema.Resource {
 				Required:    true,
 				Description: "A list of member AD Principals. Each principal can be identified by its GUID, SID, Distinguished Name, or SAM Account Name. Only one is required",
 				Elem:        &schema.Schema{Type: schema.TypeString},
-				MinItems:    1,
+				MinItems:    0,
 			},
 		},
 	}
 }
 
 func resourceADGroupMembershipRead(d *schema.ResourceData, meta interface{}) error {
-	toks := strings.Split(d.Id(), "_")
+	toks := strings.Split(d.Id(), "/")
 
 	gm, err := winrmhelper.NewGroupMembershipFromHost(meta.(*config.ProviderConf), toks[0])
 	if err != nil {
@@ -72,7 +72,7 @@ func resourceADGroupMembershipCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("while generating UUID to use as unique membership ID: %s", err)
 	}
 
-	id := fmt.Sprintf("%s_%s", gm.GroupGUID, membershipUUID)
+	id := fmt.Sprintf("%s/%s", gm.GroupGUID, membershipUUID)
 	d.SetId(id)
 
 	return nil

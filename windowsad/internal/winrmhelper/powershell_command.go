@@ -43,7 +43,7 @@ func NewPSCommand(cmds []string, opts CreatePSCommandOpts) *PSCommand {
 	if opts.PassCredentials {
 		if !opts.SkipCredPrefix {
 			cmdUsername := fmt.Sprintf("$User = \"%s\"\n", opts.Username)
-			cmdPassword := fmt.Sprintf("$Password = ConvertTo-SecureString -String \"%s\" -AsPlainText -Force\n", opts.Password)
+			cmdPassword := fmt.Sprintf("$Password = ConvertTo-SecureString -String \"%s\" -AsPlainText -Force\n", SanitiseString(opts.Password))
 			cmds = append([]string{"$Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $User, $Password\n"}, cmds...)
 			cmds = append([]string{cmdUsername}, cmds...)
 			cmds = append([]string{cmdPassword}, cmds...)
@@ -95,7 +95,6 @@ func (p *PSCommand) Run(conf *config.ProviderConf) (*PSCommandResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("while acquiring winrm client: %s", err)
 	}
-	defer conf.ReleaseWinRMClient(conn)
 
 	encodedCmd := winrm.Powershell(p.cmd)
 
@@ -109,6 +108,7 @@ func (p *PSCommand) Run(conf *config.ProviderConf) (*PSCommandResult, error) {
 		log.Printf("[DEBUG] Executing command on local host")
 		stdout, stderr, res, err = localShell.ExecutePScmd(encodedCmd)
 	}
+	defer conf.ReleaseWinRMClient(conn)
 
 	if err != nil {
 		log.Printf("[DEBUG] run error : %s", err)
