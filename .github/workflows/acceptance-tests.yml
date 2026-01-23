@@ -76,7 +76,8 @@ jobs:
           
           try {
             # Test authentication by querying AD with explicit credentials
-            $dc = Get-ADDomainController -Server $env:WINDOWSAD_HOSTNAME -Credential $cred -ErrorAction Stop
+            # Use WINDOWSAD_DC (domain controller) for AD queries, not WINDOWSAD_HOSTNAME (WinRM server)
+            $dc = Get-ADDomainController -Server $env:WINDOWSAD_DC -Credential $cred -ErrorAction Stop
             Write-Host "✓ Kerberos authentication successful"
             Write-Host "  Connected to DC: $($dc.HostName)"
           } catch {
