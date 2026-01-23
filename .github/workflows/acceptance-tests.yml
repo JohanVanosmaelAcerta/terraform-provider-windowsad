@@ -50,6 +50,14 @@ jobs:
             exit 1
           }
 
+      - name: Clean Terraform state
+        shell: pwsh
+        run: |
+          # Clean up any leftover Terraform state from previous runs
+          Get-ChildItem -Path $env:TEMP -Filter "plugintest*" -Directory -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+          Get-ChildItem -Path $env:TEMP -Filter ".terraform*" -File -ErrorAction SilentlyContinue | Remove-Item -Force
+          Write-Host "✓ Cleaned Terraform temp files"
+
       - name: Run acceptance tests
         env:
           # Use project-local directories to avoid Windows Defender blocking temp executables
