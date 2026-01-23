@@ -96,5 +96,5 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
           New-Item -ItemType Directory -Force -Path $env:GOTMPDIR | Out-Null
-          # Run sequentially to avoid provider/WinRM contention issues
-          go test ./windowsad -v -parallel 1 -timeout 45m
+          # Run sequentially with timestamps to track progress
+          go test ./windowsad -v -parallel 1 -timeout 45m 2>&1 | ForEach-Object { "[$(Get-Date -Format 'HH:mm:ss')] $_" }
