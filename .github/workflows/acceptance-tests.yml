@@ -21,6 +21,12 @@ jobs:
       WINDOWSAD_USER: ${{ secrets.AD_USERNAME }}
       WINDOWSAD_PASSWORD: ${{ secrets.AD_PASSWORD }}
       WINDOWSAD_KRB_REALM: ${{ secrets.AD_KRB_REALM }}
+      # Use HTTPS with credential passing to ensure AD cmdlets have proper auth
+      # Port 5986 must be open on the DC for HTTPS WinRM
+      WINDOWSAD_PROTO: https
+      WINDOWSAD_PORT: 5986
+      WINDOWSAD_WINRM_INSECURE: "true"
+      WINDOWSAD_WINRM_PASS_CREDENTIALS: "true"
       TF_VAR_ad_domain_name: ${{ secrets.AD_DOMAIN_NAME }}
       TF_VAR_ad_user_container: ${{ secrets.AD_USER_CONTAINER }}
       TF_VAR_ad_group_container: ${{ secrets.AD_GROUP_CONTAINER }}
