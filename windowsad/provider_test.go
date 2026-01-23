@@ -20,7 +20,9 @@ var testAccProtoV5ProviderFactories map[string]func() (tfprotov5.ProviderServer,
 func init() {
 	testAccProvider = Provider()
 	testAccProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){
-		"ad": func() (tfprotov5.ProviderServer, error) {
+		// Use full provider address as the key - required for SDK v2.34+ to match
+		// the implicit provider source that Terraform uses when required_providers is not specified
+		"registry.terraform.io/hashicorp/ad": func() (tfprotov5.ProviderServer, error) {
 			return schema.NewGRPCProviderServer(testAccProvider), nil
 		},
 	}
