@@ -43,19 +43,19 @@ jobs:
         shell: pwsh
         run: |
           # Print masked hints about credentials (without revealing actual values)
-          $user = $env:WINDOWSAD_USER
+          $adUser = $env:WINDOWSAD_USER
           $realm = $env:WINDOWSAD_KRB_REALM
-          $host = $env:WINDOWSAD_HOSTNAME
+          $adHost = $env:WINDOWSAD_HOSTNAME
           
           Write-Host "=== Credential Configuration Debug ==="
-          Write-Host "WINDOWSAD_HOSTNAME: $host"
+          Write-Host "WINDOWSAD_HOSTNAME: $adHost"
           Write-Host "WINDOWSAD_KRB_REALM: $realm"
-          Write-Host "WINDOWSAD_USER length: $($user.Length) chars"
-          Write-Host "WINDOWSAD_USER contains @: $($user.Contains('@'))"
-          Write-Host "WINDOWSAD_USER contains \: $($user.Contains('\'))"
-          if ($user.Length -gt 0) {
-            Write-Host "WINDOWSAD_USER first char: $($user[0])"
-            Write-Host "WINDOWSAD_USER last char: $($user[-1])"
+          Write-Host "WINDOWSAD_USER length: $($adUser.Length) chars"
+          Write-Host "WINDOWSAD_USER contains @: $($adUser.Contains('@'))"
+          Write-Host "WINDOWSAD_USER contains \: $($adUser.Contains('\'))"
+          if ($adUser.Length -gt 0) {
+            Write-Host "WINDOWSAD_USER first char: $($adUser[0])"
+            Write-Host "WINDOWSAD_USER last char: $($adUser[-1])"
           }
           Write-Host "WINDOWSAD_PASSWORD set: $(-not [string]::IsNullOrEmpty($env:WINDOWSAD_PASSWORD))"
           Write-Host "======================================="
@@ -65,14 +65,14 @@ jobs:
           Write-Host "Checking if user exists in AD..."
           try {
             # Try to find the user - extract username if it contains domain prefix
-            $username = $user
-            if ($user.Contains('\')) {
-              $username = $user.Split('\')[1]
-            } elseif ($user.Contains('@')) {
-              $username = $user.Split('@')[0]
+            $username = $adUser
+            if ($adUser.Contains('\')) {
+              $username = $adUser.Split('\')[1]
+            } elseif ($adUser.Contains('@')) {
+              $username = $adUser.Split('@')[0]
             }
-            $adUser = Get-ADUser -Identity $username -Server $host -ErrorAction Stop
-            Write-Host "✓ User '$username' found in AD: $($adUser.DistinguishedName)"
+            $foundUser = Get-ADUser -Identity $username -Server $adHost -ErrorAction Stop
+            Write-Host "✓ User '$username' found in AD: $($foundUser.DistinguishedName)"
           } catch {
             Write-Host "✗ User lookup failed: $_"
             Write-Host "  This may cause Kerberos authentication to fail"
