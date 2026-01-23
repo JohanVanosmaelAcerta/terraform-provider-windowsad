@@ -17,10 +17,16 @@ jobs:
     timeout-minutes: 60
     env:
       TF_ACC: 1
-      # For local execution on domain-joined Windows runner:
-      # Leave WINDOWSAD_HOSTNAME, WINDOWSAD_USER, WINDOWSAD_PASSWORD empty
-      # The gMSA running the runner has AD permissions directly
-      # Provider detects Windows + no credentials = local PowerShell execution
+      WINDOWSAD_HOSTNAME: ${{ secrets.AD_HOSTNAME }}
+      WINDOWSAD_USER: ${{ secrets.AD_USERNAME }}
+      WINDOWSAD_PASSWORD: ${{ secrets.AD_PASSWORD }}
+      WINDOWSAD_KRB_REALM: ${{ secrets.AD_KRB_REALM }}
+      # Use HTTPS with credential passing to ensure AD cmdlets have proper auth
+      # Port 5986 must be open on the DC for HTTPS WinRM
+      WINDOWSAD_PROTO: https
+      WINDOWSAD_PORT: 5986
+      WINDOWSAD_WINRM_INSECURE: "true"
+      WINDOWSAD_WINRM_PASS_CREDENTIALS: "true"
       TF_VAR_ad_domain_name: ${{ secrets.AD_DOMAIN_NAME }}
       TF_VAR_ad_user_container: ${{ secrets.AD_USER_CONTAINER }}
       TF_VAR_ad_group_container: ${{ secrets.AD_GROUP_CONTAINER }}
@@ -51,20 +57,43 @@ jobs:
           go mod download
           go mod vendor
 
-      - name: Verify AD connectivity
+      - name: Verify Kerberos authentication
         shell: pwsh
         run: |
-          # Verify the gMSA running this runner can access AD
+          # Fail fast if Kerberos auth doesn't work with the provided credentials
+          $secPass = ConvertTo-SecureString $env:WINDOWSAD_PASSWORD -AsPlainText -Force
+          $cred = New-Object System.Management.Automation.PSCredential($env:WINDOWSAD_USER, $secPass)
+          
           try {
-            $domain = Get-ADDomain -ErrorAction Stop
-            Write-Host "✓ AD connectivity successful"
-            Write-Host "  Domain: $($domain.DNSRoot)"
-            Write-Host "  Running as: $([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)"
+            # Test authentication by querying AD with explicit credentials
+            $dc = Get-ADDomainController -Server $env:WINDOWSAD_HOSTNAME -Credential $cred -ErrorAction Stop
+            Write-Host "✓ Kerberos authentication successful"
+            Write-Host "  Connected to DC: $($dc.HostName)"
           } catch {
-            Write-Host "✗ AD connectivity FAILED"
+            Write-Host "✗ Kerberos authentication FAILED"
             Write-Host "  Error: $_"
             Write-Host ""
-            Write-Host "  The runner must be domain-joined and running as a gMSA with AD permissions"
+            Write-Host "Troubleshooting hints:"
+            Write-Host "  - Verify AD_USERNAME secret is in format: user@REALM or DOMAIN\user"
+            Write-Host "  - Verify AD_PASSWORD secret is correct"
+            Write-Host "  - Verify AD_KRB_REALM matches the Kerberos realm (usually uppercase domain)"
+            exit 1
+          }
+          
+          # Warn if username format may cause issues with Go gokrb5 library
+          # The provider passes username and realm separately, so username should NOT contain @REALM
+          $user = $env:WINDOWSAD_USER
+          if ($user -match '@') {
+            Write-Host ""
+            Write-Host "⚠ WARNING: Username contains '@' character"
+            Write-Host "  The Go gokrb5 library expects username WITHOUT realm suffix"
+            Write-Host "  Example: 'svc-terraform' not 'svc-terraform@EXAMPLE.COM'"
+            Write-Host "  The realm is passed separately via WINDOWSAD_KRB_REALM"
+            Write-Host ""
+            Write-Host "  Current: WINDOWSAD_USER contains '@'"
+            Write-Host "  Current: WINDOWSAD_KRB_REALM = $($env:WINDOWSAD_KRB_REALM)"
+            Write-Host ""
+            Write-Host "  Please update AD_USERNAME secret to just the username (no @domain)"
             exit 1
           }
 
