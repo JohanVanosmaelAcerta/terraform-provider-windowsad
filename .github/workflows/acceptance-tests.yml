@@ -53,36 +53,10 @@ jobs:
       - name: Run acceptance tests
         env:
           # Use project-local directories to avoid Windows Defender blocking temp executables
+          # See issue #38 for required runner configuration
           GOCACHE: ${{ github.workspace }}\.go-cache
           GOTMPDIR: ${{ github.workspace }}\.go-tmp
         run: |
           New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
           New-Item -ItemType Directory -Force -Path $env:GOTMPDIR | Out-Null
-          
-          # Retry logic to handle transient Windows antivirus "Access is denied" errors
-          $maxRetries = 3
-          $retryCount = 0
-          $success = $false
-          
-          while (-not $success -and $retryCount -lt $maxRetries) {
-            $retryCount++
-            Write-Host "Attempt $retryCount of $maxRetries..."
-            
-            # Run tests with -count=1 to disable caching and force fresh compilation
-            go test ./windowsad -v -parallel 10 -timeout 60m -count=1
-            
-            if ($LASTEXITCODE -eq 0) {
-              $success = $true
-            } else {
-              Write-Host "Test run failed with exit code $LASTEXITCODE"
-              if ($retryCount -lt $maxRetries) {
-                Write-Host "Waiting 30 seconds before retry..."
-                Start-Sleep -Seconds 30
-              }
-            }
-          }
-          
-          if (-not $success) {
-            Write-Host "All $maxRetries attempts failed"
-            exit 1
-          }
+          go test ./windowsad -v -parallel 10 -timeout 60m
