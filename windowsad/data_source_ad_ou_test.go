@@ -17,7 +17,7 @@ func TestAccDataSourceADOU_basic(t *testing.T) {
 	path := os.Getenv("TF_VAR_ad_user_container")
 	ouName := testAccRandomName("tfacc-ou")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{

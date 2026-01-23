@@ -22,7 +22,7 @@ func TestAccResourceADComputer_basic(t *testing.T) {
 	sam := testAccRandomSAM()
 	resourceName := "windowsad_computer.c"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
@@ -54,7 +54,7 @@ func TestAccResourceADComputer_description(t *testing.T) {
 	description := "Test computer description"
 	resourceName := "windowsad_computer.c"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
@@ -93,7 +93,7 @@ func TestAccResourceADComputer_move(t *testing.T) {
 	ouName := testAccRandomName("tfacc-ou")
 	resourceName := "windowsad_computer.c"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(

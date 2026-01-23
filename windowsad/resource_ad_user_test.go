@@ -31,7 +31,7 @@ func TestAccResourceADUser_basic(t *testing.T) {
 	principalName := testAccRandomPrincipalName(domain)
 	resourceName := "windowsad_user.a"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
@@ -82,7 +82,7 @@ func TestAccResourceADUser_custom_attributes_basic(t *testing.T) {
 	caConfig := `{"carLicense": ["a value", "another value", "a value with \"\" double quotes"]}`
 	resourceName := "windowsad_user.a"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
@@ -122,7 +122,7 @@ func TestAccResourceADUser_custom_attributes_extended(t *testing.T) {
 	caConfig2 := `{"carLicense": ["a value", "another value", "a value with \"\" double quotes"], "comment": "another string"}`
 	resourceName := "windowsad_user.a"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
@@ -180,7 +180,7 @@ func TestAccResourceADUser_modify(t *testing.T) {
 	ouName := testAccRandomName("tfacc-ou")
 	resourceName := "windowsad_user.a"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
@@ -224,7 +224,7 @@ func TestAccResourceADUser_UAC(t *testing.T) {
 	principalName := testAccRandomPrincipalName(domain)
 	resourceName := "windowsad_user.a"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(

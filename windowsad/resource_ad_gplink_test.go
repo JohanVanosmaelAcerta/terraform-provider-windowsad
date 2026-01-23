@@ -27,7 +27,7 @@ func TestAccResourceADGPLink_basic(t *testing.T) {
 	gpoName := testAccRandomName("tfacc-gpo")
 	resourceName := "windowsad_gplink.og"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
@@ -92,7 +92,7 @@ func TestAccResourceADGPLink_badguid(t *testing.T) {
 	ouName := testAccRandomName("tfacc-ou")
 
 	//lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{

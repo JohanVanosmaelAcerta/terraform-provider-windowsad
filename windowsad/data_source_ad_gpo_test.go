@@ -15,7 +15,7 @@ func TestAccDatasourceADGPO_basic(t *testing.T) {
 	domain := os.Getenv("TF_VAR_ad_domain_name")
 	gpoName := testAccRandomName("tfacc-gpo")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
