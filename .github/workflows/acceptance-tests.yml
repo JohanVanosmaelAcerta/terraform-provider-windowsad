@@ -132,4 +132,5 @@ jobs:
           Write-Host "TF_ACC=$env:TF_ACC"
           Write-Host "WINDOWSAD_HOSTNAME=$env:WINDOWSAD_HOSTNAME"
           # Run pre-compiled test binary (no recompilation needed)
-          .\windowsad.test.exe -test.v -test.count=1 -test.parallel 1 -test.timeout 45m -test.run "TestAccDataSourceADComputer_basic" 2>&1 | ForEach-Object { "[$(Get-Date -Format 'HH:mm:ss')] $_" }
+          # Note: test flags use = syntax (e.g., -test.parallel=1)
+          .\windowsad.test.exe -test.v -test.count=1 -test.parallel=1 -test.timeout=45m -test.run="TestAccDataSourceADComputer_basic" 2>&1 | ForEach-Object { "[$(Get-Date -Format 'HH:mm:ss')] $_" }
