@@ -36,14 +36,14 @@ func TestAccDataSourceADOU_basic(t *testing.T) {
 
 func testAccDataSourceADOURandom(name, path string) string {
 	return fmt.Sprintf(`
-resource "ad_ou" "o" {
+resource "windowsad_ou" "o" {
   name        = %[1]q
   path        = %[2]q
   description = "Test OU for data source"
   protected   = false
 }
 
-data "ad_ou" "ods" {
+data "windowsad_ou" "ods" {
   dn = ad_ou.o.dn
 }
 `, name, path)

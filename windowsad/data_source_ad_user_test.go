@@ -41,7 +41,7 @@ func TestAccDataSourceADUser_basic(t *testing.T) {
 
 func testAccDataSourceADUserRandom(sam, displayName, password, principalName, container string) string {
 	return fmt.Sprintf(`
-resource "ad_user" "a" {
+resource "windowsad_user" "a" {
   sam_account_name = %[1]q
   display_name     = %[2]q
   initial_password = %[3]q
@@ -49,7 +49,7 @@ resource "ad_user" "a" {
   container        = %[5]q
 }
 
-data "ad_user" "d" {
+data "windowsad_user" "d" {
   user_id = ad_user.a.id
 }
 `, sam, displayName, password, principalName, container)

@@ -262,7 +262,7 @@ func TestAccResourceADUser_UAC(t *testing.T) {
 // testAccResourceADUserConfigBasicRandom generates a basic user config with random names.
 func testAccResourceADUserConfigBasicRandom(sam, displayName, password, principalName, container string) string {
 	return fmt.Sprintf(`
-resource "ad_user" "a" {
+resource "windowsad_user" "a" {
   sam_account_name = %[1]q
   display_name     = %[2]q
   initial_password = %[3]q
@@ -275,7 +275,7 @@ resource "ad_user" "a" {
 // testAccResourceADUserConfigAttributesRandom generates a user config with all attributes.
 func testAccResourceADUserConfigAttributesRandom(sam, displayName, password, principalName, container string) string {
 	return fmt.Sprintf(`
-resource "ad_user" "a" {
+resource "windowsad_user" "a" {
   sam_account_name          = %[1]q
   display_name              = %[2]q
   initial_password          = %[3]q
@@ -317,7 +317,7 @@ resource "ad_user" "a" {
 // testAccResourceADUserConfigCustomAttributesRandom generates a user config with custom attributes.
 func testAccResourceADUserConfigCustomAttributesRandom(sam, displayName, password, principalName, container, customAttributes string) string {
 	return fmt.Sprintf(`
-resource "ad_user" "a" {
+resource "windowsad_user" "a" {
   sam_account_name  = %[1]q
   display_name      = %[2]q
   initial_password  = %[3]q
@@ -331,14 +331,14 @@ resource "ad_user" "a" {
 // testAccResourceADUserConfigMovedRandom generates a user config that moves user to a new OU.
 func testAccResourceADUserConfigMovedRandom(sam, displayName, password, principalName, parentContainer, ouName string) string {
 	return fmt.Sprintf(`
-resource "ad_ou" "o" {
+resource "windowsad_ou" "o" {
   name        = %[6]q
   path        = %[5]q
   description = "Test OU for user move"
   protected   = false
 }
 
-resource "ad_user" "a" {
+resource "windowsad_user" "a" {
   sam_account_name = %[1]q
   display_name     = %[2]q
   initial_password = %[3]q
@@ -351,7 +351,7 @@ resource "ad_user" "a" {
 // testAccResourceADUserConfigUACRandom generates a user config with UAC flags.
 func testAccResourceADUserConfigUACRandom(sam, displayName, password, principalName, container, enabled, passwordNeverExpires string) string {
 	return fmt.Sprintf(`
-resource "ad_user" "a" {
+resource "windowsad_user" "a" {
   sam_account_name       = %[1]q
   display_name           = %[2]q
   initial_password       = %[3]q

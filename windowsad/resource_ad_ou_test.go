@@ -60,7 +60,7 @@ func TestAccResourceADOU_basic(t *testing.T) {
 
 func testAccResourceADOUConfigRandom(name, path, description string, protected bool) string {
 	return fmt.Sprintf(`
-resource "ad_ou" "o" {
+resource "windowsad_ou" "o" {
   name        = %[1]q
   path        = %[2]q
   description = %[3]q

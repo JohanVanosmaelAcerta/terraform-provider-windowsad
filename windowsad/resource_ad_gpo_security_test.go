@@ -79,12 +79,12 @@ func testAccResourceADGPOSecurityExists(resourceName string, desired bool) resou
 
 func testAccResourceADGPOSecurityConfigRandom(gpoName, domain string) string {
 	return fmt.Sprintf(`
-resource "ad_gpo" "gpo" {
+resource "windowsad_gpo" "gpo" {
   name   = %[1]q
   domain = %[2]q
 }
 
-resource "ad_gpo_security" "gpo_sec" {
+resource "windowsad_gpo_security" "gpo_sec" {
   gpo_container = ad_gpo.gpo.id
   password_policies {
     minimum_password_length = 3

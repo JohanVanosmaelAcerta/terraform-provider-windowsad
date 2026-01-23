@@ -34,12 +34,12 @@ func TestAccDatasourceADGPO_basic(t *testing.T) {
 
 func testAccDatasourceADGPOConfigRandom(name, domain string) string {
 	return fmt.Sprintf(`
-resource "ad_gpo" "gpo" {
+resource "windowsad_gpo" "gpo" {
   name   = %[1]q
   domain = %[2]q
 }
 
-data "ad_gpo" "g" {
+data "windowsad_gpo" "g" {
   name = ad_gpo.gpo.name
 }
 `, name, domain)

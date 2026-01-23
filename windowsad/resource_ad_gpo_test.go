@@ -60,7 +60,7 @@ func TestAccResourceADGPO_basic(t *testing.T) {
 
 func testAccResourceADGPOConfigRandom(name, domain, description, status string) string {
 	return fmt.Sprintf(`
-resource "ad_gpo" "gpo" {
+resource "windowsad_gpo" "gpo" {
   name        = %[1]q
   domain      = %[2]q
   description = %[3]q

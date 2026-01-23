@@ -20,9 +20,11 @@ var testAccProtoV5ProviderFactories map[string]func() (tfprotov5.ProviderServer,
 func init() {
 	testAccProvider = Provider()
 	testAccProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){
-		// Use full provider address as the key - required for SDK v2.34+ to match
-		// the implicit provider source that Terraform uses when required_providers is not specified
-		"registry.terraform.io/hashicorp/ad": func() (tfprotov5.ProviderServer, error) {
+		// Use just the provider name as the key. The SDK automatically builds the full
+		// provider address using TF_ACC_PROVIDER_NAMESPACE (defaults to hashicorp) and
+		// TF_ACC_PROVIDER_HOST (defaults to registry.terraform.io).
+		// Note: Use "windowsad" to match our provider's resource prefix (windowsad_user, etc.)
+		"windowsad": func() (tfprotov5.ProviderServer, error) {
 			return schema.NewGRPCProviderServer(testAccProvider), nil
 		},
 	}

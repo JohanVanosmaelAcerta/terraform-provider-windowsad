@@ -122,7 +122,7 @@ func TestAccResourceADGroup_scopes(t *testing.T) {
 
 func testAccResourceADGroupConfigRandom(name, sam, container, scope, category, description string) string {
 	return fmt.Sprintf(`
-resource "ad_group" "g" {
+resource "windowsad_group" "g" {
   name             = %[1]q
   sam_account_name = %[2]q
   container        = %[3]q

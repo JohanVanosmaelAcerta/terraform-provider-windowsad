@@ -118,7 +118,7 @@ func TestAccResourceADComputer_move(t *testing.T) {
 
 func testAccResourceADComputerConfigRandom(name, sam, container string) string {
 	return fmt.Sprintf(`
-resource "ad_computer" "c" {
+resource "windowsad_computer" "c" {
   name      = %[1]q
   pre2kname = %[2]q
   container = %[3]q
@@ -128,7 +128,7 @@ resource "ad_computer" "c" {
 
 func testAccResourceADComputerConfigDescriptionRandom(name, sam, container, description string) string {
 	return fmt.Sprintf(`
-resource "ad_computer" "c" {
+resource "windowsad_computer" "c" {
   name        = %[1]q
   pre2kname   = %[2]q
   container   = %[3]q
@@ -139,13 +139,13 @@ resource "ad_computer" "c" {
 
 func testAccResourceADComputerConfigMoveRandom(name, sam, parentContainer, ouName string) string {
 	return fmt.Sprintf(`
-resource "ad_ou" "o" {
+resource "windowsad_ou" "o" {
   name      = %[4]q
   path      = %[3]q
   protected = false
 }
 
-resource "ad_computer" "c" {
+resource "windowsad_computer" "c" {
   name      = %[1]q
   pre2kname = %[2]q
   container = ad_ou.o.dn

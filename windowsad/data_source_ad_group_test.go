@@ -37,7 +37,7 @@ func TestAccDatasourceADGroup_basic(t *testing.T) {
 
 func testAccDatasourceADGroupConfigRandom(name, sam, container string) string {
 	return fmt.Sprintf(`
-resource "ad_group" "g" {
+resource "windowsad_group" "g" {
   name             = %[1]q
   sam_account_name = %[2]q
   container        = %[3]q
@@ -45,7 +45,7 @@ resource "ad_group" "g" {
   category         = "security"
 }
 
-data "ad_group" "d" {
+data "windowsad_group" "d" {
   group_id = ad_group.g.id
 }
 `, name, sam, container)

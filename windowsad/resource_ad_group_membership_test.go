@@ -136,19 +136,19 @@ func testAccResourceADGroupMembershipConfigRandom(
 	userName, userSam, userPassword, userPrincipal, userContainer string,
 ) string {
 	return fmt.Sprintf(`
-resource "ad_group" "g" {
+resource "windowsad_group" "g" {
   name             = %[1]q
   sam_account_name = %[2]q
   container        = %[3]q
 }
 
-resource "ad_group" "g2" {
+resource "windowsad_group" "g2" {
   name             = %[4]q
   sam_account_name = %[5]q
   container        = %[6]q
 }
 
-resource "ad_user" "u" {
+resource "windowsad_user" "u" {
   display_name     = %[7]q
   sam_account_name = %[8]q
   initial_password = %[9]q
@@ -156,7 +156,7 @@ resource "ad_user" "u" {
   container        = %[11]q
 }
 
-resource "ad_group_membership" "gm" {
+resource "windowsad_group_membership" "gm" {
   group_id      = ad_group.g.id
   group_members = [ad_group.g2.id, ad_user.u.id]
 }
@@ -170,25 +170,25 @@ func testAccResourceADGroupMembershipUpdateRandom(
 	userName, userSam, userPassword, userPrincipal, userContainer string,
 ) string {
 	return fmt.Sprintf(`
-resource "ad_group" "g" {
+resource "windowsad_group" "g" {
   name             = %[1]q
   sam_account_name = %[2]q
   container        = %[3]q
 }
 
-resource "ad_group" "g2" {
+resource "windowsad_group" "g2" {
   name             = %[4]q
   sam_account_name = %[5]q
   container        = %[6]q
 }
 
-resource "ad_group" "g3" {
+resource "windowsad_group" "g3" {
   name             = %[7]q
   sam_account_name = %[8]q
   container        = %[9]q
 }
 
-resource "ad_user" "u" {
+resource "windowsad_user" "u" {
   display_name     = %[10]q
   sam_account_name = %[11]q
   initial_password = %[12]q
@@ -196,7 +196,7 @@ resource "ad_user" "u" {
   container        = %[14]q
 }
 
-resource "ad_group_membership" "gm" {
+resource "windowsad_group_membership" "gm" {
   group_id      = ad_group.g.id
   group_members = [ad_group.g2.id, ad_user.u.id, ad_group.g3.id]
 }

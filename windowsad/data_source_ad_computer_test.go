@@ -34,12 +34,12 @@ func TestAccDataSourceADComputer_basic(t *testing.T) {
 
 func testAccDataSourceADComputerRandom(name, container string) string {
 	return fmt.Sprintf(`
-resource "ad_computer" "c" {
+resource "windowsad_computer" "c" {
   name      = %[1]q
   container = %[2]q
 }
 
-data "ad_computer" "dsc" {
+data "windowsad_computer" "dsc" {
   guid = ad_computer.c.guid
 }
 `, name, container)

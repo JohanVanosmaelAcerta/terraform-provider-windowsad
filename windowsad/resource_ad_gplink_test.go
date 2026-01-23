@@ -106,14 +106,14 @@ func TestAccResourceADGPLink_badguid(t *testing.T) {
 
 func testAccResourceADGPLinkConfigBadGUIDRandom(ouName, path string) string {
 	return fmt.Sprintf(`
-resource "ad_ou" "o" {
+resource "windowsad_ou" "o" {
   name        = %[1]q
   path        = %[2]q
   description = "Test OU for GPLink"
   protected   = false
 }
 
-resource "ad_gplink" "og" {
+resource "windowsad_gplink" "og" {
   gpo_guid  = "something-horribly-wrong"
   target_dn = ad_ou.o.dn
   enforced  = false
@@ -125,21 +125,21 @@ resource "ad_gplink" "og" {
 
 func testAccResourceADGPLinkConfigRandom(ouName, path, gpoName, domain string, enforced, enabled bool, order int) string {
 	return fmt.Sprintf(`
-resource "ad_ou" "o" {
+resource "windowsad_ou" "o" {
   name        = %[1]q
   path        = %[2]q
   description = "Test OU for GPLink"
   protected   = false
 }
 
-resource "ad_gpo" "g" {
+resource "windowsad_gpo" "g" {
   name        = %[3]q
   domain      = %[4]q
   description = "Test GPO for GPLink"
   status      = "AllSettingsEnabled"
 }
 
-resource "ad_gplink" "og" {
+resource "windowsad_gplink" "og" {
   gpo_guid  = ad_gpo.g.id
   target_dn = ad_ou.o.dn
   enforced  = %[5]t
