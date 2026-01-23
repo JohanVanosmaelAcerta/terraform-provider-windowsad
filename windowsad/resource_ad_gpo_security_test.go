@@ -24,9 +24,9 @@ func TestAccResourceADGPOSecurity_basic(t *testing.T) {
 	resourceName := "windowsad_gpo_security.gpo_sec"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-		CheckDestroy: resource.ComposeTestCheckFunc(testAccResourceADGPOSecurityExists(resourceName, false)),
+		CheckDestroy:             resource.ComposeTestCheckFunc(testAccResourceADGPOSecurityExists(resourceName, false)),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceADGPOSecurityConfigRandom(gpoName, domain),

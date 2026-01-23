@@ -23,7 +23,7 @@ func TestAccDataSourceADUser_basic(t *testing.T) {
 	principalName := testAccRandomPrincipalName(domain)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{

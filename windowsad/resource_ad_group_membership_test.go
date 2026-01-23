@@ -36,7 +36,7 @@ func TestAccResourceADGroupMembership_basic(t *testing.T) {
 	resourceName := "windowsad_group_membership.gm"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGroupMembershipExists(resourceName, false, 0),
@@ -86,7 +86,7 @@ func TestAccResourceADGroupMembership_Update(t *testing.T) {
 	resourceName := "windowsad_group_membership.gm"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGroupMembershipExists(resourceName, false, 0),

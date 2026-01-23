@@ -25,7 +25,7 @@ func TestAccResourceADGroup_basic(t *testing.T) {
 	resourceName := "windowsad_group.g"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGroupExists(resourceName, sam, false),
@@ -58,7 +58,7 @@ func TestAccResourceADGroup_categories(t *testing.T) {
 	resourceName := "windowsad_group.g"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGroupExists(resourceName, sam, false),
@@ -92,7 +92,7 @@ func TestAccResourceADGroup_scopes(t *testing.T) {
 	resourceName := "windowsad_group.g"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGroupExists(resourceName, sam, false),

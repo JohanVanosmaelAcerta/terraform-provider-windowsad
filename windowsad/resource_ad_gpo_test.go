@@ -25,7 +25,7 @@ func TestAccResourceADGPO_basic(t *testing.T) {
 	resourceName := "windowsad_gpo.gpo"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGPOExists(resourceName, gpoName, false),

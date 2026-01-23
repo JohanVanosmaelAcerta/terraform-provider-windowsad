@@ -16,7 +16,7 @@ func TestAccDataSourceADComputer_basic(t *testing.T) {
 	computerName := testAccRandomName("tfacc-pc")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{

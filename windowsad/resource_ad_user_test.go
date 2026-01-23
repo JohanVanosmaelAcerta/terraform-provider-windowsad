@@ -32,7 +32,7 @@ func TestAccResourceADUser_basic(t *testing.T) {
 	resourceName := "windowsad_user.a"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADUserExists(resourceName, sam, false),
@@ -83,7 +83,7 @@ func TestAccResourceADUser_custom_attributes_basic(t *testing.T) {
 	resourceName := "windowsad_user.a"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADUserExists(resourceName, sam, false),
@@ -123,7 +123,7 @@ func TestAccResourceADUser_custom_attributes_extended(t *testing.T) {
 	resourceName := "windowsad_user.a"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADUserExists(resourceName, sam, false),
@@ -181,7 +181,7 @@ func TestAccResourceADUser_modify(t *testing.T) {
 	resourceName := "windowsad_user.a"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADUserExists(resourceName, renamedSam, false),
@@ -225,7 +225,7 @@ func TestAccResourceADUser_UAC(t *testing.T) {
 	resourceName := "windowsad_user.a"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADUserExists(resourceName, sam, false),

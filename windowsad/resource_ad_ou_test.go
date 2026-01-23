@@ -25,7 +25,7 @@ func TestAccResourceADOU_basic(t *testing.T) {
 	resourceName := "windowsad_ou.o"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADOUExists(resourceName, "", false),
