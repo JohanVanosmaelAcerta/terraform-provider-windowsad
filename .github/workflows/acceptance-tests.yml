@@ -56,6 +56,8 @@ jobs:
           # See README.md for required runner configuration (Defender exclusions, Developer Mode)
           GOCACHE: ${{ github.workspace }}\.go-cache
           GOTMPDIR: ${{ github.workspace }}\.go-tmp
+          # Override provider namespace - SDK defaults to "hashicorp" which causes registry lookup
+          TF_ACC_PROVIDER_NAMESPACE: "-"
         run: |
           New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
           New-Item -ItemType Directory -Force -Path $env:GOTMPDIR | Out-Null
