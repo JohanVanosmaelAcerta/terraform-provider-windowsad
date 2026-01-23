@@ -26,7 +26,7 @@ func TestAccResourceADOU_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADOUExists(resourceName, "", false),
 		),

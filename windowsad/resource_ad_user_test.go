@@ -33,7 +33,7 @@ func TestAccResourceADUser_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADUserExists(resourceName, sam, false),
 		),
@@ -84,7 +84,7 @@ func TestAccResourceADUser_custom_attributes_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADUserExists(resourceName, sam, false),
 		),
@@ -124,7 +124,7 @@ func TestAccResourceADUser_custom_attributes_extended(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADUserExists(resourceName, sam, false),
 		),
@@ -182,7 +182,7 @@ func TestAccResourceADUser_modify(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADUserExists(resourceName, renamedSam, false),
 		),
@@ -226,7 +226,7 @@ func TestAccResourceADUser_UAC(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADUserExists(resourceName, sam, false),
 		),

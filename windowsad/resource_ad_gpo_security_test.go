@@ -25,7 +25,7 @@ func TestAccResourceADGPOSecurity_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t, envVars) },
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(testAccResourceADGPOSecurityExists(resourceName, false)),
 		Steps: []resource.TestStep{
 			{

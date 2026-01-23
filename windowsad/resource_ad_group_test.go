@@ -26,7 +26,7 @@ func TestAccResourceADGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGroupExists(resourceName, sam, false),
 		),
@@ -59,7 +59,7 @@ func TestAccResourceADGroup_categories(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGroupExists(resourceName, sam, false),
 		),
@@ -93,7 +93,7 @@ func TestAccResourceADGroup_scopes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGroupExists(resourceName, sam, false),
 		),

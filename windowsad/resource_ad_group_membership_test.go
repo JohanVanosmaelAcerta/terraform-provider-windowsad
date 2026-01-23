@@ -37,7 +37,7 @@ func TestAccResourceADGroupMembership_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGroupMembershipExists(resourceName, false, 0),
 		),
@@ -87,7 +87,7 @@ func TestAccResourceADGroupMembership_Update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testAccResourceADGroupMembershipExists(resourceName, false, 0),
 		),

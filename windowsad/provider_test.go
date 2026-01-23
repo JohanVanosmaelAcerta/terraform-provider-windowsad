@@ -9,14 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var testAccProviders map[string]*schema.Provider
-var testAccProvider *schema.Provider
-
-func init() {
-	testAccProvider = Provider()
-	testAccProviders = map[string]*schema.Provider{
-		"ad": testAccProvider,
-	}
+// testAccProviderFactories returns a map of provider factories for acceptance tests.
+// This approach is required for SDK v2 to use the local provider instead of downloading from the registry.
+var testAccProviderFactories = map[string]func() (*schema.Provider, error){
+	"ad": func() (*schema.Provider, error) {
+		return Provider(), nil
+	},
 }
 
 func testAccPreCheck(t *testing.T, envVars []string) {
