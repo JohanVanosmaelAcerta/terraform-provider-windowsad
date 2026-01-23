@@ -10,6 +10,9 @@ on:
 jobs:
   acceptance-tests:
     name: Acceptance Tests
+    # Skip for PRs from forks - they don't have access to secrets and
+    # we don't want to expose internal infrastructure in logs
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 120
     env:
