@@ -55,4 +55,16 @@ jobs:
           GOTMPDIR: D:\actions-runner-terraform\_work\_temp\go-test
         run: |
           New-Item -ItemType Directory -Force -Path $env:GOTMPDIR | Out-Null
-          go test ./windowsad -v -parallel 10 -timeout 60m
+          
+          # Build test binary to project directory to avoid Windows security blocking temp files
+          $TestBinary = "windowsad.test.exe"
+          Write-Host "Building test binary..."
+          go test -c -o $TestBinary ./windowsad
+          
+          if (-not (Test-Path $TestBinary)) {
+            Write-Host "Failed to build test binary"
+            exit 1
+          }
+          
+          Write-Host "Running tests..."
+          & ".\$TestBinary" -test.v -test.parallel 10 -test.timeout 60m
