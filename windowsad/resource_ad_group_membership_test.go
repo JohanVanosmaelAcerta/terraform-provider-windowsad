@@ -33,7 +33,7 @@ func TestAccResourceADGroupMembership_basic(t *testing.T) {
 	userSam := testAccRandomSAM()
 	userPassword := testAccRandomPassword()
 	userPrincipal := testAccRandomPrincipalName(domain)
-	resourceName := "ad_group_membership.gm"
+	resourceName := "windowsad_group_membership.gm"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -83,7 +83,7 @@ func TestAccResourceADGroupMembership_Update(t *testing.T) {
 	userSam := testAccRandomSAM()
 	userPassword := testAccRandomPassword()
 	userPrincipal := testAccRandomPrincipalName(domain)
-	resourceName := "ad_group_membership.gm"
+	resourceName := "windowsad_group_membership.gm"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -157,8 +157,8 @@ resource "windowsad_user" "u" {
 }
 
 resource "windowsad_group_membership" "gm" {
-  group_id      = ad_group.g.id
-  group_members = [ad_group.g2.id, ad_user.u.id]
+  group_id      = windowsad_group.g.id
+  group_members = [windowsad_group.g2.id, windowsad_user.u.id]
 }
 `, groupName, groupSam, groupContainer, group2Name, group2Sam, group2Container, userName, userSam, userPassword, userPrincipal, userContainer)
 }
@@ -197,8 +197,8 @@ resource "windowsad_user" "u" {
 }
 
 resource "windowsad_group_membership" "gm" {
-  group_id      = ad_group.g.id
-  group_members = [ad_group.g2.id, ad_user.u.id, ad_group.g3.id]
+  group_id      = windowsad_group.g.id
+  group_members = [windowsad_group.g2.id, windowsad_user.u.id, windowsad_group.g3.id]
 }
 `, groupName, groupSam, groupContainer, group2Name, group2Sam, group2Container, group3Name, group3Sam, group3Container, userName, userSam, userPassword, userPrincipal, userContainer)
 }

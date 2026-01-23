@@ -22,7 +22,7 @@ func TestAccResourceADGroup_basic(t *testing.T) {
 	container := os.Getenv("TF_VAR_ad_group_container")
 	groupName := testAccRandomName("tfacc-group")
 	sam := testAccRandomSAM()
-	resourceName := "ad_group.g"
+	resourceName := "windowsad_group.g"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -55,7 +55,7 @@ func TestAccResourceADGroup_categories(t *testing.T) {
 	container := os.Getenv("TF_VAR_ad_group_container")
 	groupName := testAccRandomName("tfacc-group")
 	sam := testAccRandomSAM()
-	resourceName := "ad_group.g"
+	resourceName := "windowsad_group.g"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -89,7 +89,7 @@ func TestAccResourceADGroup_scopes(t *testing.T) {
 	container := os.Getenv("TF_VAR_ad_group_container")
 	groupName := testAccRandomName("tfacc-group")
 	sam := testAccRandomSAM()
-	resourceName := "ad_group.g"
+	resourceName := "windowsad_group.g"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },

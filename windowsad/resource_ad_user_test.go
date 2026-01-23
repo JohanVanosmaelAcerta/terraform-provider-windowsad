@@ -29,7 +29,7 @@ func TestAccResourceADUser_basic(t *testing.T) {
 	displayName := testAccRandomName("tfacc-user")
 	password := testAccRandomPassword()
 	principalName := testAccRandomPrincipalName(domain)
-	resourceName := "ad_user.a"
+	resourceName := "windowsad_user.a"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -80,7 +80,7 @@ func TestAccResourceADUser_custom_attributes_basic(t *testing.T) {
 	password := testAccRandomPassword()
 	principalName := testAccRandomPrincipalName(domain)
 	caConfig := `{"carLicense": ["a value", "another value", "a value with \"\" double quotes"]}`
-	resourceName := "ad_user.a"
+	resourceName := "windowsad_user.a"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -120,7 +120,7 @@ func TestAccResourceADUser_custom_attributes_extended(t *testing.T) {
 	principalName := testAccRandomPrincipalName(domain)
 	caConfig := `{"carLicense": ["a value", "another value", "a value with \"\" double quotes"]}`
 	caConfig2 := `{"carLicense": ["a value", "another value", "a value with \"\" double quotes"], "comment": "another string"}`
-	resourceName := "ad_user.a"
+	resourceName := "windowsad_user.a"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -178,7 +178,7 @@ func TestAccResourceADUser_modify(t *testing.T) {
 	password := testAccRandomPassword()
 	principalName := testAccRandomPrincipalName(domain)
 	ouName := testAccRandomName("tfacc-ou")
-	resourceName := "ad_user.a"
+	resourceName := "windowsad_user.a"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -222,7 +222,7 @@ func TestAccResourceADUser_UAC(t *testing.T) {
 	displayName := testAccRandomName("tfacc-user")
 	password := testAccRandomPassword()
 	principalName := testAccRandomPrincipalName(domain)
-	resourceName := "ad_user.a"
+	resourceName := "windowsad_user.a"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -343,7 +343,7 @@ resource "windowsad_user" "a" {
   display_name     = %[2]q
   initial_password = %[3]q
   principal_name   = %[4]q
-  container        = ad_ou.o.dn
+  container        = windowsad_ou.o.dn
 }
 `, sam, displayName, password, principalName, parentContainer, ouName)
 }

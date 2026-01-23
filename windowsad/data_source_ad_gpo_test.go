@@ -23,8 +23,8 @@ func TestAccDatasourceADGPO_basic(t *testing.T) {
 				Config: testAccDatasourceADGPOConfigRandom(gpoName, domain),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
-						"data.ad_gpo.g", "id",
-						"ad_gpo.gpo", "id",
+						"data.windowsad_gpo.g", "id",
+						"windowsad_gpo.gpo", "id",
 					),
 				),
 			},
@@ -40,7 +40,7 @@ resource "windowsad_gpo" "gpo" {
 }
 
 data "windowsad_gpo" "g" {
-  name = ad_gpo.gpo.name
+  name = windowsad_gpo.gpo.name
 }
 `, name, domain)
 }

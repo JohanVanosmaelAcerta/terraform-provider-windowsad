@@ -25,7 +25,7 @@ func TestAccResourceADGPLink_basic(t *testing.T) {
 	domain := os.Getenv("TF_VAR_ad_domain_name")
 	ouName := testAccRandomName("tfacc-ou")
 	gpoName := testAccRandomName("tfacc-gpo")
-	resourceName := "ad_gplink.og"
+	resourceName := "windowsad_gplink.og"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -115,7 +115,7 @@ resource "windowsad_ou" "o" {
 
 resource "windowsad_gplink" "og" {
   gpo_guid  = "something-horribly-wrong"
-  target_dn = ad_ou.o.dn
+  target_dn = windowsad_ou.o.dn
   enforced  = false
   enabled   = false
   order     = 1
@@ -140,8 +140,8 @@ resource "windowsad_gpo" "g" {
 }
 
 resource "windowsad_gplink" "og" {
-  gpo_guid  = ad_gpo.g.id
-  target_dn = ad_ou.o.dn
+  gpo_guid  = windowsad_gpo.g.id
+  target_dn = windowsad_ou.o.dn
   enforced  = %[5]t
   enabled   = %[6]t
   order     = %[7]d

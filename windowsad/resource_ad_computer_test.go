@@ -20,7 +20,7 @@ func TestAccResourceADComputer_basic(t *testing.T) {
 	container := os.Getenv("TF_VAR_ad_computer_container")
 	computerName := testAccRandomName("tfacc-pc")
 	sam := testAccRandomSAM()
-	resourceName := "ad_computer.c"
+	resourceName := "windowsad_computer.c"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -52,7 +52,7 @@ func TestAccResourceADComputer_description(t *testing.T) {
 	computerName := testAccRandomName("tfacc-pc")
 	sam := testAccRandomSAM()
 	description := "Test computer description"
-	resourceName := "ad_computer.c"
+	resourceName := "windowsad_computer.c"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -91,7 +91,7 @@ func TestAccResourceADComputer_move(t *testing.T) {
 	computerName := testAccRandomName("tfacc-pc")
 	sam := testAccRandomSAM()
 	ouName := testAccRandomName("tfacc-ou")
-	resourceName := "ad_computer.c"
+	resourceName := "windowsad_computer.c"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
@@ -148,7 +148,7 @@ resource "windowsad_ou" "o" {
 resource "windowsad_computer" "c" {
   name      = %[1]q
   pre2kname = %[2]q
-  container = ad_ou.o.dn
+  container = windowsad_ou.o.dn
 }
 `, name, sam, parentContainer, ouName)
 }

@@ -21,7 +21,7 @@ func TestAccResourceADGPOSecurity_basic(t *testing.T) {
 
 	domain := os.Getenv("TF_VAR_ad_domain_name")
 	gpoName := testAccRandomName("tfacc-gposec")
-	resourceName := "ad_gpo_security.gpo_sec"
+	resourceName := "windowsad_gpo_security.gpo_sec"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t, envVars) },
@@ -85,7 +85,7 @@ resource "windowsad_gpo" "gpo" {
 }
 
 resource "windowsad_gpo_security" "gpo_sec" {
-  gpo_container = ad_gpo.gpo.id
+  gpo_container = windowsad_gpo.gpo.id
   password_policies {
     minimum_password_length = 3
   }

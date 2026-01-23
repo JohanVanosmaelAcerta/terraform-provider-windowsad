@@ -30,8 +30,8 @@ func TestAccDataSourceADUser_basic(t *testing.T) {
 				Config: testAccDataSourceADUserRandom(sam, displayName, password, principalName, container),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
-						"data.ad_user.d", "id",
-						"ad_user.a", "id",
+						"data.windowsad_user.d", "id",
+						"windowsad_user.a", "id",
 					),
 				),
 			},
@@ -50,7 +50,7 @@ resource "windowsad_user" "a" {
 }
 
 data "windowsad_user" "d" {
-  user_id = ad_user.a.id
+  user_id = windowsad_user.a.id
 }
 `, sam, displayName, password, principalName, container)
 }

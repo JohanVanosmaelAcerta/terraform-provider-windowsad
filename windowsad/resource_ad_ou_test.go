@@ -22,7 +22,7 @@ func TestAccResourceADOU_basic(t *testing.T) {
 	path := os.Getenv("TF_VAR_ad_user_container")
 	ouName := testAccRandomName("tfacc-ou")
 	renamedOuName := ouName + "-renamed"
-	resourceName := "ad_ou.o"
+	resourceName := "windowsad_ou.o"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },

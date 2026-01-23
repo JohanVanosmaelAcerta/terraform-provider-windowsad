@@ -22,7 +22,7 @@ func TestAccResourceADGPO_basic(t *testing.T) {
 	domain := os.Getenv("TF_VAR_ad_domain_name")
 	gpoName := testAccRandomName("tfacc-gpo")
 	renamedGpoName := gpoName + "-renamed"
-	resourceName := "ad_gpo.gpo"
+	resourceName := "windowsad_gpo.gpo"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },

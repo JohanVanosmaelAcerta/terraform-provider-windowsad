@@ -25,8 +25,8 @@ func TestAccDataSourceADOU_basic(t *testing.T) {
 				Config: testAccDataSourceADOURandom(ouName, path),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
-						"data.ad_ou.ods", "name",
-						"ad_ou.o", "name",
+						"data.windowsad_ou.ods", "name",
+						"windowsad_ou.o", "name",
 					),
 				),
 			},
@@ -44,7 +44,7 @@ resource "windowsad_ou" "o" {
 }
 
 data "windowsad_ou" "ods" {
-  dn = ad_ou.o.dn
+  dn = windowsad_ou.o.dn
 }
 `, name, path)
 }

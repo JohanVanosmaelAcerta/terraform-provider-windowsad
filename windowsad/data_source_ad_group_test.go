@@ -26,8 +26,8 @@ func TestAccDatasourceADGroup_basic(t *testing.T) {
 				Config: testAccDatasourceADGroupConfigRandom(groupName, sam, container),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
-						"data.ad_group.d", "id",
-						"ad_group.g", "id",
+						"data.windowsad_group.d", "id",
+						"windowsad_group.g", "id",
 					),
 				),
 			},
@@ -46,7 +46,7 @@ resource "windowsad_group" "g" {
 }
 
 data "windowsad_group" "d" {
-  group_id = ad_group.g.id
+  group_id = windowsad_group.g.id
 }
 `, name, sam, container)
 }

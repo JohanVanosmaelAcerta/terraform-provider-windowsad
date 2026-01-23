@@ -23,8 +23,8 @@ func TestAccDataSourceADComputer_basic(t *testing.T) {
 				Config: testAccDataSourceADComputerRandom(computerName, container),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
-						"data.ad_computer.dsc", "guid",
-						"ad_computer.c", "guid",
+						"data.windowsad_computer.dsc", "guid",
+						"windowsad_computer.c", "guid",
 					),
 				),
 			},
@@ -40,7 +40,7 @@ resource "windowsad_computer" "c" {
 }
 
 data "windowsad_computer" "dsc" {
-  guid = ad_computer.c.guid
+  guid = windowsad_computer.c.guid
 }
 `, name, container)
 }
