@@ -96,13 +96,15 @@ The acceptance tests require these environment variables:
 | Variable | Description |
 |----------|-------------|
 | `WINDOWSAD_HOSTNAME` | Domain controller hostname for WinRM |
-| `WINDOWSAD_USER` | AD admin username |
+| `WINDOWSAD_USER` | AD admin username (**without** `@realm` suffix) |
 | `WINDOWSAD_PASSWORD` | AD admin password |
-| `WINDOWSAD_KRB_REALM` | Kerberos realm |
+| `WINDOWSAD_KRB_REALM` | Kerberos realm (uppercase, e.g., `EXAMPLE.COM`) |
 | `TF_VAR_ad_domain_name` | AD domain name (e.g., `example.com`) |
 | `TF_VAR_ad_user_container` | OU for test users |
 | `TF_VAR_ad_group_container` | OU for test groups |
 | `TF_VAR_ad_computer_container` | OU for test computers |
+
+> **Important:** For Kerberos authentication, `WINDOWSAD_USER` must be just the username (e.g., `svc-terraform`), not `svc-terraform@EXAMPLE.COM`. The realm is passed separately via `WINDOWSAD_KRB_REALM`.
 
 ## Contributing
 
