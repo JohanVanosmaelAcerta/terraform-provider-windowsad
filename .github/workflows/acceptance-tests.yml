@@ -1,0 +1,42 @@
+name: Acceptance Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  acceptance-tests:
+    name: Acceptance Tests
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 120
+    env:
+      TF_ACC: 1
+      WINDOWSAD_HOSTNAME: ${{ vars.AD_HOSTNAME }}
+      WINDOWSAD_USER: ${{ vars.AD_USERNAME }}
+      WINDOWSAD_PASSWORD: ${{ secrets.AD_PASSWORD }}
+      WINDOWSAD_KRB_REALM: ${{ vars.AD_KRB_REALM }}
+      TF_VAR_ad_domain_name: ${{ vars.AD_DOMAIN_NAME }}
+      TF_VAR_ad_user_container: ${{ vars.AD_USER_CONTAINER }}
+      TF_VAR_ad_group_container: ${{ vars.AD_GROUP_CONTAINER }}
+      TF_VAR_ad_computer_container: ${{ vars.AD_COMPUTER_CONTAINER }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Verify AD connectivity
+        shell: pwsh
+        run: |
+          Write-Host "Testing AD connectivity to $env:WINDOWSAD_HOSTNAME..."
+          $dc = Get-ADDomainController -Server $env:WINDOWSAD_HOSTNAME -ErrorAction Stop
+          Write-Host "Connected to DC: $($dc.HostName) in domain $($dc.Domain)"
+
+      - name: Run acceptance tests
+        run: go test ./windowsad -v -timeout 120m
