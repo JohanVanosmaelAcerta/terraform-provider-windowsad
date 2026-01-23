@@ -9,12 +9,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// testAccProvider is a shared provider instance used by helper functions that need Meta().
+var testAccProvider *schema.Provider
+
 // testAccProviderFactories returns a map of provider factories for acceptance tests.
 // This approach is required for SDK v2 to use the local provider instead of downloading from the registry.
-var testAccProviderFactories = map[string]func() (*schema.Provider, error){
-	"ad": func() (*schema.Provider, error) {
-		return Provider(), nil
-	},
+var testAccProviderFactories map[string]func() (*schema.Provider, error)
+
+func init() {
+	testAccProvider = Provider()
+	testAccProviderFactories = map[string]func() (*schema.Provider, error){
+		"ad": func() (*schema.Provider, error) {
+			return testAccProvider, nil
+		},
+	}
 }
 
 func testAccPreCheck(t *testing.T, envVars []string) {
