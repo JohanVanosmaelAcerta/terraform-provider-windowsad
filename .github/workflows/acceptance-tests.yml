@@ -54,11 +54,9 @@ jobs:
 
       - name: Update vendor dependencies
         run: |
-          # Only vendor if needed (vendor dir missing or go.mod changed)
-          if (!(Test-Path "vendor")) {
-            go mod download
-            go mod vendor
-          }
+          # Vendor is in git, but ensure it's up to date with go.mod
+          go mod download
+          go mod vendor
 
       - name: Pre-compile test binary
         env:
