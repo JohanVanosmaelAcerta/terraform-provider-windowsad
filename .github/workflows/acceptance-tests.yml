@@ -61,6 +61,23 @@ jobs:
             Write-Host "  - Verify AD_KRB_REALM matches the Kerberos realm (usually uppercase domain)"
             exit 1
           }
+          
+          # Warn if username format may cause issues with Go gokrb5 library
+          # The provider passes username and realm separately, so username should NOT contain @REALM
+          $user = $env:WINDOWSAD_USER
+          if ($user -match '@') {
+            Write-Host ""
+            Write-Host "⚠ WARNING: Username contains '@' character"
+            Write-Host "  The Go gokrb5 library expects username WITHOUT realm suffix"
+            Write-Host "  Example: 'svc-terraform' not 'svc-terraform@EXAMPLE.COM'"
+            Write-Host "  The realm is passed separately via WINDOWSAD_KRB_REALM"
+            Write-Host ""
+            Write-Host "  Current: WINDOWSAD_USER contains '@'"
+            Write-Host "  Current: WINDOWSAD_KRB_REALM = $($env:WINDOWSAD_KRB_REALM)"
+            Write-Host ""
+            Write-Host "  Please update AD_USERNAME secret to just the username (no @domain)"
+            exit 1
+          }
 
       - name: Clean Terraform state
         shell: pwsh
