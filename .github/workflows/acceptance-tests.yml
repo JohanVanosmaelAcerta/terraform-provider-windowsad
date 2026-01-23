@@ -39,53 +39,26 @@ jobs:
           go mod download
           go mod vendor
 
-      - name: Debug credential configuration
+      - name: Verify Kerberos authentication
         shell: pwsh
         run: |
-          # Print masked hints about credentials (without revealing actual values)
-          $adUser = $env:WINDOWSAD_USER
-          $realm = $env:WINDOWSAD_KRB_REALM
-          $adHost = $env:WINDOWSAD_HOSTNAME
+          # Fail fast if Kerberos auth doesn't work with the provided credentials
+          $secPass = ConvertTo-SecureString $env:WINDOWSAD_PASSWORD -AsPlainText -Force
+          $cred = New-Object System.Management.Automation.PSCredential($env:WINDOWSAD_USER, $secPass)
           
-          Write-Host "=== Credential Configuration Debug ==="
-          Write-Host "WINDOWSAD_HOSTNAME: $adHost"
-          Write-Host "WINDOWSAD_KRB_REALM: $realm"
-          Write-Host "WINDOWSAD_USER length: $($adUser.Length) chars"
-          Write-Host "WINDOWSAD_USER contains @: $($adUser.Contains('@'))"
-          Write-Host "WINDOWSAD_USER contains \: $($adUser.Contains('\'))"
-          if ($adUser.Length -gt 0) {
-            Write-Host "WINDOWSAD_USER first char: $($adUser[0])"
-            Write-Host "WINDOWSAD_USER last char: $($adUser[-1])"
-          }
-          Write-Host "WINDOWSAD_PASSWORD set: $(-not [string]::IsNullOrEmpty($env:WINDOWSAD_PASSWORD))"
-          Write-Host "======================================="
-          
-          # Verify user exists in AD
-          Write-Host ""
-          Write-Host "Checking if user exists in AD..."
           try {
-            # Try to find the user - extract username if it contains domain prefix
-            $username = $adUser
-            if ($adUser.Contains('\')) {
-              $username = $adUser.Split('\')[1]
-            } elseif ($adUser.Contains('@')) {
-              $username = $adUser.Split('@')[0]
-            }
-            $foundUser = Get-ADUser -Identity $username -Server $adHost -ErrorAction Stop
-            Write-Host "✓ User '$username' found in AD: $($foundUser.DistinguishedName)"
+            # Test authentication by querying AD with explicit credentials
+            $dc = Get-ADDomainController -Server $env:WINDOWSAD_HOSTNAME -Credential $cred -ErrorAction Stop
+            Write-Host "✓ Kerberos authentication successful"
+            Write-Host "  Connected to DC: $($dc.HostName)"
           } catch {
-            Write-Host "✗ User lookup failed: $_"
-            Write-Host "  This may cause Kerberos authentication to fail"
-          }
-
-      - name: Verify AD connectivity
-        shell: pwsh
-        run: |
-          try {
-            $dc = Get-ADDomainController -Server $env:WINDOWSAD_HOSTNAME -ErrorAction Stop
-            Write-Host "✓ AD connectivity verified"
-          } catch {
-            Write-Host "✗ AD connectivity failed"
+            Write-Host "✗ Kerberos authentication FAILED"
+            Write-Host "  Error: $_"
+            Write-Host ""
+            Write-Host "Troubleshooting hints:"
+            Write-Host "  - Verify AD_USERNAME secret is in format: user@REALM or DOMAIN\user"
+            Write-Host "  - Verify AD_PASSWORD secret is correct"
+            Write-Host "  - Verify AD_KRB_REALM matches the Kerberos realm (usually uppercase domain)"
             exit 1
           }
 
