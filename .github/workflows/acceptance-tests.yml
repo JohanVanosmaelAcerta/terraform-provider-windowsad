@@ -54,8 +54,19 @@ jobs:
 
       - name: Update vendor dependencies
         run: |
-          go mod download
-          go mod vendor
+          # Only vendor if needed (vendor dir missing or go.mod changed)
+          if (!(Test-Path "vendor")) {
+            go mod download
+            go mod vendor
+          }
+
+      - name: Pre-compile test binary
+        env:
+          GOCACHE: ${{ github.workspace }}\.go-cache
+        run: |
+          # Build test binary once, reuse for all tests
+          go test -c -o windowsad.test.exe ./windowsad
+          Write-Host "✓ Test binary compiled"
 
       - name: Verify Kerberos authentication
         shell: pwsh
@@ -120,6 +131,5 @@ jobs:
           Write-Host "=== Starting acceptance tests at $(Get-Date) ==="
           Write-Host "TF_ACC=$env:TF_ACC"
           Write-Host "WINDOWSAD_HOSTNAME=$env:WINDOWSAD_HOSTNAME"
-          Write-Host "Go version: $(go version)"
-          # Run with -count=1 to disable test caching, timeout per-test with -test.timeout
-          go test ./windowsad -v -count=1 -parallel 1 -timeout 45m -run "TestAccDataSourceADComputer_basic" 2>&1 | ForEach-Object { "[$(Get-Date -Format 'HH:mm:ss')] $_" }
+          # Run pre-compiled test binary (no recompilation needed)
+          .\windowsad.test.exe -test.v -test.count=1 -test.parallel 1 -test.timeout 45m -test.run "TestAccDataSourceADComputer_basic" 2>&1 | ForEach-Object { "[$(Get-Date -Format 'HH:mm:ss')] $_" }
