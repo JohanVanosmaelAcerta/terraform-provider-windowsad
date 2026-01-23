@@ -77,6 +77,9 @@ func NewConfig(d *schema.ResourceData) (*Settings, error) {
 		DomainController:     domainController,
 	}
 
+	log.Printf("[DEBUG] Provider settings: WinRM host=%s, port=%d, proto=%s, realm=%s, krb_conf=%s, krb_spn=%s, domain_controller=%s",
+		winRMHost, winRMPort, winRMProto, krbRealm, krbConfig, krbSpn, domainController)
+
 	return cfg, nil
 }
 
@@ -190,12 +193,16 @@ func (c *KerberosTransporter) Transport(endpoint *winrm.Endpoint) error {
 func (c *KerberosTransporter) Post(_ *winrm.Client, request *soap.SoapMessage) (string, error) {
 	var cfg *config.Config
 	if c.KrbConf != "" {
+		log.Printf("[DEBUG] Loading Kerberos config from file: %s", c.KrbConf)
 		loadedCfg, err := config.Load(c.KrbConf)
 		if err != nil {
+			log.Printf("[ERROR] Failed to load Kerberos config: %s", err)
 			return "", err
 		}
 		cfg = loadedCfg
+		log.Printf("[DEBUG] Kerberos config loaded successfully. Realm: %s, KDCs: %v", cfg.LibDefaults.DefaultRealm, cfg.Realms)
 	} else {
+		log.Printf("[DEBUG] No krb5.conf provided, building config programmatically. Realm: %s, KDC host: %s", c.Domain, c.Hostname)
 		cfg = config.New()
 		cfg.LibDefaults.DNSLookupKDC = false
 		cfg.LibDefaults.DNSLookupRealm = false
@@ -257,6 +264,7 @@ func (c *KerberosTransporter) Post(_ *winrm.Client, request *soap.SoapMessage) (
 	}
 
 	// setup the spnego client using the kerberos client we got above
+	log.Printf("[DEBUG] Creating SPNEGO client with SPN: %s", c.SPN)
 	spnegoCl := spnego.NewClient(kerberosClient, nil, c.SPN)
 
 	if c.transport != nil {
@@ -265,11 +273,14 @@ func (c *KerberosTransporter) Post(_ *winrm.Client, request *soap.SoapMessage) (
 
 	//create an http request
 	winrmURL := fmt.Sprintf("%s://%s:%d/wsman", c.Proto, c.Hostname, c.Port)
+	log.Printf("[DEBUG] Making WinRM request to: %s", winrmURL)
 	winRMRequest, _ := http.NewRequest("POST", winrmURL, strings.NewReader(request.String()))
 	winRMRequest.Header.Add("Content-Type", "application/soap+xml;charset=UTF-8")
 
 	// Use the spnego client to make the http request
+	log.Printf("[DEBUG] Executing SPNEGO authenticated request...")
 	resp, err := spnegoCl.Do(winRMRequest)
+	log.Printf("[DEBUG] SPNEGO request completed")
 	if err != nil {
 		return "", err
 	}
