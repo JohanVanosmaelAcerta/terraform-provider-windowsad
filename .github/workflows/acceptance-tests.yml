@@ -21,8 +21,9 @@ jobs:
       WINDOWSAD_USER: ${{ secrets.AD_USERNAME }}
       WINDOWSAD_PASSWORD: ${{ secrets.AD_PASSWORD }}
       WINDOWSAD_KRB_REALM: ${{ secrets.AD_KRB_REALM }}
+      WINDOWSAD_KRB_SPN: ${{ secrets.AD_KRB_SPN }}
+      WINDOWSAD_DC: ${{ secrets.AD_DC }}
       # Use HTTPS with credential passing to ensure AD cmdlets have proper auth
-      # Port 5986 must be open on the DC for HTTPS WinRM
       WINDOWSAD_PROTO: https
       WINDOWSAD_PORT: 5986
       WINDOWSAD_WINRM_INSECURE: "true"
