@@ -28,6 +28,8 @@ jobs:
       WINDOWSAD_PORT: 5986
       WINDOWSAD_WINRM_INSECURE: "true"
       WINDOWSAD_WINRM_PASS_CREDENTIALS: "true"
+      # Kerberos configuration file path (created in setup step)
+      WINDOWSAD_KRB_CONF: ${{ github.workspace }}\krb5.conf
       TF_VAR_ad_domain_name: ${{ secrets.AD_DOMAIN_NAME }}
       TF_VAR_ad_user_container: ${{ secrets.AD_USER_CONTAINER }}
       TF_VAR_ad_group_container: ${{ secrets.AD_GROUP_CONTAINER }}
@@ -35,6 +37,37 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Create Kerberos configuration
+        shell: pwsh
+        run: |
+          # Create krb5.conf for gokrb5 library to find the KDC
+          # The DC secret should be the fully qualified domain controller hostname
+          $realm = $env:WINDOWSAD_KRB_REALM
+          $dc = $env:WINDOWSAD_DC
+          $domain = $realm.ToLower()
+          
+          $krb5Config = @"
+          [libdefaults]
+             default_realm = $realm
+             dns_lookup_realm = false
+             dns_lookup_kdc = false
+
+          [realms]
+              $realm = {
+                  kdc     = $dc
+                  admin_server = $dc
+                  default_domain = $domain
+              }
+
+          [domain_realm]
+              .$domain = $realm
+              $domain = $realm
+          "@
+          
+          $krb5Config | Out-File -FilePath "${{ github.workspace }}\krb5.conf" -Encoding utf8
+          Write-Host "Created krb5.conf:"
+          Get-Content "${{ github.workspace }}\krb5.conf"
 
       - name: Set up Go
         uses: actions/setup-go@v5
