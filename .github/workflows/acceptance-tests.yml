@@ -96,4 +96,5 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
           New-Item -ItemType Directory -Force -Path $env:GOTMPDIR | Out-Null
-          go test ./windowsad -v -parallel 4 -timeout 60m
+          # Run with parallelism=2 to reduce resource contention, 30min timeout to catch hangs
+          go test ./windowsad -v -parallel 2 -timeout 30m
