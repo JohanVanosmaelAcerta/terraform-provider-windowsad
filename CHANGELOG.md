@@ -1,3 +1,29 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+This project is a maintained fork of the archived [hashicorp/terraform-provider-ad](https://github.com/hashicorp/terraform-provider-ad). The changelog below includes both the original HashiCorp releases and new releases from this fork.
+
+---
+
+## [Unreleased]
+
+### Added
+- AGENTS.md with project guidelines and roadmap
+
+### Changed
+- Renamed default branch from `master` to `main`
+- Updated Go to 1.25
+
+### Fixed
+- Community bug fixes from upstream PRs (#173, #166, #159, #156, #128, #124, #197)
+
+---
+
+## Previous Releases (hashicorp/terraform-provider-ad)
+
+> The releases below are from the original HashiCorp provider before it was archived.
+
 ## 0.5.0 (March 28, 2024)
 
 * dependencies: update go to `1.21` [GH-187]
