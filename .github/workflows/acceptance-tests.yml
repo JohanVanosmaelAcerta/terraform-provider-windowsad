@@ -34,12 +34,5 @@ jobs:
         with:
           go-version: '1.25'
 
-      - name: Verify AD connectivity
-        shell: pwsh
-        run: |
-          Write-Host "Testing AD connectivity to $env:WINDOWSAD_HOSTNAME..."
-          $dc = Get-ADDomainController -Server $env:WINDOWSAD_HOSTNAME -ErrorAction Stop
-          Write-Host "Connected to DC: $($dc.HostName) in domain $($dc.Domain)"
-
       - name: Run acceptance tests
         run: go test ./windowsad -v -timeout 120m
