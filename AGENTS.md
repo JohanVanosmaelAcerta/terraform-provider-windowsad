@@ -48,7 +48,7 @@ This is a **Go-based Terraform provider** that manages Windows Active Directory 
 ### 🚫 Never
 - Commit credentials or secrets
 - Modify files in `vendor/` directly (use `go mod vendor`)
-- Push directly to `master` branch
+- Push directly to `main` branch
 - Remove existing resource attributes (breaking change)
 - Use `-Properties *` in new AD queries (performance issue #27)
 
@@ -71,7 +71,7 @@ chore: update to Go 1.25
 ```
 
 ### Pull Requests
-- Always target `master` branch
+- Always target `main` branch
 - Use squash merge (default)
 - Include detailed description with Summary, Changes, Testing sections
 - Link to GitHub issue(s) being addressed
@@ -225,7 +225,7 @@ When adding/modifying resources:
 
 GitHub Actions workflows in `.github/workflows/`:
 
-- **ci.yml**: Build and test on push/PR to master
+- **ci.yml**: Build and test on push/PR to main
 - **release.yml**: GoReleaser for tagged releases
 - **unit_tests.yaml**: Unit test matrix
 
