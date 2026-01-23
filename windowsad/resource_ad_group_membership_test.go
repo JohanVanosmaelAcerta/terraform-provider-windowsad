@@ -2,6 +2,7 @@ package windowsad
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -13,35 +14,47 @@ import (
 )
 
 func TestAccResourceADGroupMembership_basic(t *testing.T) {
+	t.Parallel()
+
 	envVars := []string{
-		"TF_VAR_ad_group_name",
-		"TF_VAR_ad_group_sam",
 		"TF_VAR_ad_group_container",
-		"TF_VAR_ad_group2_name",
-		"TF_VAR_ad_group2_sam",
-		"TF_VAR_ad_group2_container",
-		"TF_VAR_ad_user_display_name",
-		"TF_VAR_ad_user_sam",
-		"TF_VAR_ad_user_password",
-		"TF_VAR_ad_user_principal_name",
 		"TF_VAR_ad_user_container",
+		"TF_VAR_ad_domain_name",
 	}
 
-	resource.Test(t, resource.TestCase{
+	groupContainer := os.Getenv("TF_VAR_ad_group_container")
+	userContainer := os.Getenv("TF_VAR_ad_user_container")
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+
+	groupName := testAccRandomName("tfacc-grp")
+	groupSam := testAccRandomSAM()
+	group2Name := testAccRandomName("tfacc-grp2")
+	group2Sam := testAccRandomSAM()
+	userName := testAccRandomName("tfacc-user")
+	userSam := testAccRandomSAM()
+	userPassword := testAccRandomPassword()
+	userPrincipal := testAccRandomPrincipalName(domain)
+	resourceName := "ad_group_membership.gm"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
 		Providers: testAccProviders,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADGroupMembershipExists("ad_group_membership.gm", false, 0),
+			testAccResourceADGroupMembershipExists(resourceName, false, 0),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADGroupMembershipConfigBasic(),
+				Config: testAccResourceADGroupMembershipConfigRandom(
+					groupName, groupSam, groupContainer,
+					group2Name, group2Sam, groupContainer,
+					userName, userSam, userPassword, userPrincipal, userContainer,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGroupMembershipExists("ad_group_membership.gm", true, 2),
+					testAccResourceADGroupMembershipExists(resourceName, true, 2),
 				),
 			},
 			{
-				ResourceName:      "ad_group_membership.gm",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -50,33 +63,46 @@ func TestAccResourceADGroupMembership_basic(t *testing.T) {
 }
 
 func TestAccResourceADGroupMembership_Update(t *testing.T) {
+	t.Parallel()
+
 	envVars := []string{
-		"TF_VAR_ad_group_name",
-		"TF_VAR_ad_group_sam",
 		"TF_VAR_ad_group_container",
-		"TF_VAR_ad_group2_name",
-		"TF_VAR_ad_group2_sam",
-		"TF_VAR_ad_group2_container",
-		"TF_VAR_ad_group3_name",
-		"TF_VAR_ad_group3_sam",
-		"TF_VAR_ad_group3_container",
-		"TF_VAR_ad_user_display_name",
-		"TF_VAR_ad_user_sam",
-		"TF_VAR_ad_user_password",
-		"TF_VAR_ad_user_principal_name",
 		"TF_VAR_ad_user_container",
+		"TF_VAR_ad_domain_name",
 	}
-	resource.Test(t, resource.TestCase{
+
+	groupContainer := os.Getenv("TF_VAR_ad_group_container")
+	userContainer := os.Getenv("TF_VAR_ad_user_container")
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+
+	groupName := testAccRandomName("tfacc-grp")
+	groupSam := testAccRandomSAM()
+	group2Name := testAccRandomName("tfacc-grp2")
+	group2Sam := testAccRandomSAM()
+	group3Name := testAccRandomName("tfacc-grp3")
+	group3Sam := testAccRandomSAM()
+	userName := testAccRandomName("tfacc-user")
+	userSam := testAccRandomSAM()
+	userPassword := testAccRandomPassword()
+	userPrincipal := testAccRandomPrincipalName(domain)
+	resourceName := "ad_group_membership.gm"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
 		Providers: testAccProviders,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADGroupMembershipExists("ad_group_membership.gm", false, 0),
+			testAccResourceADGroupMembershipExists(resourceName, false, 0),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADGroupMembershipUpdate(),
+				Config: testAccResourceADGroupMembershipUpdateRandom(
+					groupName, groupSam, groupContainer,
+					group2Name, group2Sam, groupContainer,
+					group3Name, group3Sam, groupContainer,
+					userName, userSam, userPassword, userPrincipal, userContainer,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGroupMembershipExists("ad_group_membership.gm", true, 3),
+					testAccResourceADGroupMembershipExists(resourceName, true, 3),
 				),
 			},
 		},
@@ -106,100 +132,75 @@ func testAccResourceADGroupMembershipExists(resourceName string, expected bool, 
 	}
 }
 
-func testAccResourceADGroupMembershipConfigBasic() string {
-	return `
-
-		variable "ad_group_name" {}
-		variable "ad_group_sam" {}
-		variable "ad_group_container" {}
-
-		variable "ad_group2_name" {}
-		variable "ad_group2_sam" {}
-		variable "ad_group2_container" {}
-
-		variable "ad_user_display_name" {}
-		variable "ad_user_principal_name" {}
-		variable "ad_user_sam" {}
-		variable "ad_user_password" {}
-		variable "ad_user_container" {}
-
-		resource ad_group "g" {
-			name             = var.ad_group_name
-			sam_account_name = var.ad_group_sam
-			container        = var.ad_group_container
-		}
-
-		resource ad_group "g2" {
-			name             = var.ad_group2_name
-			sam_account_name = var.ad_group2_sam
-			container        = var.ad_group2_container
-		}
-
-		resource ad_user "u" {
-			display_name     = var.ad_user_display_name
-			principal_name   = var.ad_user_principal_name
-			sam_account_name = var.ad_user_sam
-			initial_password = var.ad_user_password
-			container        = var.ad_user_container
-		}
-
-		resource ad_group_membership "gm" {
-			group_id = ad_group.g.id
-			group_members  = [ ad_group.g2.id,ad_user.u.id]
-		}
-	`
+func testAccResourceADGroupMembershipConfigRandom(
+	groupName, groupSam, groupContainer,
+	group2Name, group2Sam, group2Container,
+	userName, userSam, userPassword, userPrincipal, userContainer string,
+) string {
+	return fmt.Sprintf(`
+resource "ad_group" "g" {
+  name             = %[1]q
+  sam_account_name = %[2]q
+  container        = %[3]q
 }
 
-func testAccResourceADGroupMembershipUpdate() string {
-	return `
-		variable "ad_group_name" {}
-		variable "ad_group_sam" {}
-		variable "ad_group_container" {}
+resource "ad_group" "g2" {
+  name             = %[4]q
+  sam_account_name = %[5]q
+  container        = %[6]q
+}
 
-		variable "ad_group2_name" {}
-		variable "ad_group2_sam" {}
-		variable "ad_group2_container" {}
+resource "ad_user" "u" {
+  display_name     = %[7]q
+  sam_account_name = %[8]q
+  initial_password = %[9]q
+  principal_name   = %[10]q
+  container        = %[11]q
+}
 
-		variable "ad_group3_name" {}
-		variable "ad_group3_sam" {}
-		variable "ad_group3_container" {}
+resource "ad_group_membership" "gm" {
+  group_id      = ad_group.g.id
+  group_members = [ad_group.g2.id, ad_user.u.id]
+}
+`, groupName, groupSam, groupContainer, group2Name, group2Sam, group2Container, userName, userSam, userPassword, userPrincipal, userContainer)
+}
 
-		variable "ad_user_display_name" {}
-		variable "ad_user_principal_name" {}
-		variable "ad_user_sam" {}
-		variable "ad_user_password" {}
-		variable "ad_user_container" {}
+func testAccResourceADGroupMembershipUpdateRandom(
+	groupName, groupSam, groupContainer,
+	group2Name, group2Sam, group2Container,
+	group3Name, group3Sam, group3Container,
+	userName, userSam, userPassword, userPrincipal, userContainer string,
+) string {
+	return fmt.Sprintf(`
+resource "ad_group" "g" {
+  name             = %[1]q
+  sam_account_name = %[2]q
+  container        = %[3]q
+}
 
-		resource ad_group "g" {
-			name             = var.ad_group_name
-			sam_account_name = var.ad_group_sam
-			container        = var.ad_group_container
-		}
+resource "ad_group" "g2" {
+  name             = %[4]q
+  sam_account_name = %[5]q
+  container        = %[6]q
+}
 
-		resource ad_group "g2" {
-			name             = var.ad_group2_name
-			sam_account_name = var.ad_group2_sam
-			container        = var.ad_group2_container
-		}
+resource "ad_group" "g3" {
+  name             = %[7]q
+  sam_account_name = %[8]q
+  container        = %[9]q
+}
 
-		resource ad_group "g3" {
-			name             = var.ad_group3_name
-			sam_account_name = var.ad_group3_sam
-			container        = var.ad_group3_container
-		}
+resource "ad_user" "u" {
+  display_name     = %[10]q
+  sam_account_name = %[11]q
+  initial_password = %[12]q
+  principal_name   = %[13]q
+  container        = %[14]q
+}
 
-
-		resource ad_user "u" {
-			display_name     = var.ad_user_display_name
-			principal_name   = var.ad_user_principal_name
-			sam_account_name = var.ad_user_sam
-			initial_password = var.ad_user_password
-			container        = var.ad_user_container
-		}
-
-		resource ad_group_membership "gm" {
-			group_id = ad_group.g.id
-			group_members  = [ ad_group.g2.id,ad_user.u.id,ad_group.g3.id]
-		}
-`
+resource "ad_group_membership" "gm" {
+  group_id      = ad_group.g.id
+  group_members = [ad_group.g2.id, ad_user.u.id, ad_group.g3.id]
+}
+`, groupName, groupSam, groupContainer, group2Name, group2Sam, group2Container, group3Name, group3Sam, group3Container, userName, userSam, userPassword, userPrincipal, userContainer)
 }

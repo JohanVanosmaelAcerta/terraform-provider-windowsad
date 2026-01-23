@@ -2,6 +2,7 @@ package windowsad
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -13,23 +14,29 @@ import (
 )
 
 func TestAccResourceADGPOSecurity_basic(t *testing.T) {
+	t.Parallel()
+
 	envVars := []string{
-		"TF_VAR_ad_gpo_name",
-		"TF_VAR_ad_gpo_domain",
+		"TF_VAR_ad_domain_name",
 	}
-	resource.Test(t, resource.TestCase{
+
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	gpoName := testAccRandomName("tfacc-gposec")
+	resourceName := "ad_gpo_security.gpo_sec"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t, envVars) },
 		Providers:    testAccProviders,
-		CheckDestroy: resource.ComposeTestCheckFunc(testAccResourceADGPOSecurityExists("ad_gpo_security.gpo_sec", false)),
+		CheckDestroy: resource.ComposeTestCheckFunc(testAccResourceADGPOSecurityExists(resourceName, false)),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADGPOSecurityConfigBasic(),
+				Config: testAccResourceADGPOSecurityConfigRandom(gpoName, domain),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGPOSecurityExists("ad_gpo_security.gpo_sec", true),
+					testAccResourceADGPOSecurityExists(resourceName, true),
 				),
 			},
 			{
-				ResourceName:      "ad_gpo_security.gpo_sec",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -71,21 +78,18 @@ func testAccResourceADGPOSecurityExists(resourceName string, desired bool) resou
 	}
 }
 
-func testAccResourceADGPOSecurityConfigBasic() string {
-	return `
-variable "ad_gpo_domain" {}
-variable "ad_gpo_name" {}
-
+func testAccResourceADGPOSecurityConfigRandom(gpoName, domain string) string {
+	return fmt.Sprintf(`
 resource "ad_gpo" "gpo" {
-    name        = var.ad_gpo_name
-    domain      = var.ad_gpo_domain
+  name   = %[1]q
+  domain = %[2]q
 }
 
 resource "ad_gpo_security" "gpo_sec" {
-    gpo_container = ad_gpo.gpo.id
-   password_policies {
-        minimum_password_length = 3
-    }
+  gpo_container = ad_gpo.gpo.id
+  password_policies {
+    minimum_password_length = 3
+  }
 }
-`
+`, gpoName, domain)
 }

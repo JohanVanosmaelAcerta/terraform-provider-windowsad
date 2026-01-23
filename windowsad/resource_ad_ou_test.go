@@ -14,41 +14,44 @@ import (
 )
 
 func TestAccResourceADOU_basic(t *testing.T) {
+	t.Parallel()
+
 	envVars := []string{
-		"TF_VAR_ad_ou_name",
-		"TF_VAR_ad_ou_description",
-		"TF_VAR_ad_ou_path",
-		"TF_VAR_ad_ou_protected",
+		"TF_VAR_ad_user_container",
 	}
 
-	resource.Test(t, resource.TestCase{
+	path := os.Getenv("TF_VAR_ad_user_container")
+	ouName := testAccRandomName("tfacc-ou")
+	renamedOuName := ouName + "-renamed"
+	resourceName := "ad_ou.o"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
 		Providers: testAccProviders,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADOUExists("ad_ou.o", "", false),
+			testAccResourceADOUExists(resourceName, "", false),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADOUConfigBasic("", true),
+				Config: testAccResourceADOUConfigRandom(ouName, path, "Test OU", true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADOUExists("ad_ou.o", os.Getenv("TF_VAR_ad_ou_name"), true),
+					testAccResourceADOUExists(resourceName, ouName, true),
 				),
 			},
 			{
-				Config: testAccResourceADOUConfigBasic("-renamed", true),
+				Config: testAccResourceADOUConfigRandom(renamedOuName, path, "Test OU", true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADOUExists("ad_ou.o", fmt.Sprintf("%s-renamed",
-						os.Getenv("TF_VAR_ad_ou_name")), true),
+					testAccResourceADOUExists(resourceName, renamedOuName, true),
 				),
 			},
 			{
-				Config: testAccResourceADOUConfigBasic("", false),
+				Config: testAccResourceADOUConfigRandom(ouName, path, "Test OU", false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADOUExists("ad_ou.o", os.Getenv("TF_VAR_ad_ou_name"), true),
+					testAccResourceADOUExists(resourceName, ouName, true),
 				),
 			},
 			{
-				ResourceName:      "ad_ou.o",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -56,20 +59,15 @@ func TestAccResourceADOU_basic(t *testing.T) {
 	})
 }
 
-func testAccResourceADOUConfigBasic(nameSuffix string, protection bool) string {
+func testAccResourceADOUConfigRandom(name, path, description string, protected bool) string {
 	return fmt.Sprintf(`
-variable ad_ou_name {}
-variable ad_ou_path {}
-variable ad_ou_description {}
-variable protected { default = %t}
-
-resource "ad_ou" "o" { 
-    name = "${var.ad_ou_name}%s"
-    path = var.ad_ou_path
-    description = var.ad_ou_description
-    protected = var.protected
+resource "ad_ou" "o" {
+  name        = %[1]q
+  path        = %[2]q
+  description = %[3]q
+  protected   = %[4]t
 }
-`, protection, nameSuffix)
+`, name, path, description, protected)
 }
 
 func testAccResourceADOUExists(resource, name string, expected bool) resource.TestCheckFunc {

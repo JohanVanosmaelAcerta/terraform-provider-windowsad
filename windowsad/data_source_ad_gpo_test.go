@@ -1,19 +1,27 @@
 package windowsad
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDatasourceADGPO_basic(t *testing.T) {
-	envVars := []string{"TF_VAR_ad_domain_name", "TF_VAR_ad_gpo_name"}
-	resource.Test(t, resource.TestCase{
+	t.Parallel()
+
+	envVars := []string{"TF_VAR_ad_domain_name"}
+
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	gpoName := testAccRandomName("tfacc-gpo")
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDatasourceADGPOConfigBasic(),
+				Config: testAccDatasourceADGPOConfigRandom(gpoName, domain),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
 						"data.ad_gpo.g", "id",
@@ -25,19 +33,15 @@ func TestAccDatasourceADGPO_basic(t *testing.T) {
 	})
 }
 
-func testAccDatasourceADGPOConfigBasic() string {
-	return `
+func testAccDatasourceADGPOConfigRandom(name, domain string) string {
+	return fmt.Sprintf(`
+resource "ad_gpo" "gpo" {
+  name   = %[1]q
+  domain = %[2]q
+}
 
-	variable "ad_domain_name" {}
-	variable "ad_gpo_name" {}
-
-	resource "ad_gpo" "gpo" {
-		name        = var.ad_gpo_name
-		domain      = var.ad_domain_name
-	}
-
-	data "ad_gpo" "g" {
-	    name = ad_gpo.gpo.name
-	}
-	`
+data "ad_gpo" "g" {
+  name = ad_gpo.gpo.name
+}
+`, name, domain)
 }

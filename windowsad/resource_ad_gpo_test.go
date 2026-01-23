@@ -14,41 +14,44 @@ import (
 )
 
 func TestAccResourceADGPO_basic(t *testing.T) {
+	t.Parallel()
+
 	envVars := []string{
-		"TF_VAR_ad_gpo_name",
-		"TF_VAR_ad_gpo_domain",
-		"TF_VAR_ad_gpo_description",
-		"TF_VAR_ad_gpo_status",
+		"TF_VAR_ad_domain_name",
 	}
 
-	gpoName := os.Getenv("TF_VAR_ad_gpo_name")
-	resource.Test(t, resource.TestCase{
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	gpoName := testAccRandomName("tfacc-gpo")
+	renamedGpoName := gpoName + "-renamed"
+	resourceName := "ad_gpo.gpo"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
 		Providers: testAccProviders,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADGPOExists("ad_gpo.gpo", gpoName, false),
+			testAccResourceADGPOExists(resourceName, gpoName, false),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADGPOConfigBasic(""),
+				Config: testAccResourceADGPOConfigRandom(gpoName, domain, "Test GPO", "AllSettingsEnabled"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGPOExists("ad_gpo.gpo", gpoName, true),
+					testAccResourceADGPOExists(resourceName, gpoName, true),
 				),
 			},
 			{
-				Config: testAccResourceADGPOConfigBasic("-renamed"),
+				Config: testAccResourceADGPOConfigRandom(renamedGpoName, domain, "Test GPO", "AllSettingsEnabled"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGPOExists("ad_gpo.gpo", fmt.Sprintf("%s-renamed", gpoName), true),
+					testAccResourceADGPOExists(resourceName, renamedGpoName, true),
 				),
 			},
 			{
-				Config: testAccResourceADGPOConfigBasic(""),
+				Config: testAccResourceADGPOConfigRandom(gpoName, domain, "Test GPO", "AllSettingsEnabled"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGPOExists("ad_gpo.gpo", gpoName, true),
+					testAccResourceADGPOExists(resourceName, gpoName, true),
 				),
 			},
 			{
-				ResourceName:      "ad_gpo.gpo",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -56,21 +59,15 @@ func TestAccResourceADGPO_basic(t *testing.T) {
 	})
 }
 
-func testAccResourceADGPOConfigBasic(suffix string) string {
+func testAccResourceADGPOConfigRandom(name, domain, description, status string) string {
 	return fmt.Sprintf(`
-
-	variable "ad_gpo_domain" {}
-	variable "ad_gpo_name" {}
-	variable "ad_gpo_description" {}
-	variable "ad_gpo_status" {}
-
-	resource "ad_gpo" "gpo" {
-		name        = "${var.ad_gpo_name}%s"
-		domain      = var.ad_gpo_domain
-		description = var.ad_gpo_description
-		status      = var.ad_gpo_status
-	}
-	`, suffix)
+resource "ad_gpo" "gpo" {
+  name        = %[1]q
+  domain      = %[2]q
+  description = %[3]q
+  status      = %[4]q
+}
+`, name, domain, description, status)
 }
 
 func testAccResourceADGPOExists(resourceName, name string, expected bool) resource.TestCheckFunc {

@@ -2,6 +2,7 @@ package windowsad
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -14,64 +15,67 @@ import (
 )
 
 func TestAccResourceADGPLink_basic(t *testing.T) {
+	t.Parallel()
+
 	envVars := []string{
-		"TF_VAR_ad_ou_name",
-		"TF_VAR_ad_ou_path",
-		"TF_VAR_ad_ou_protected",
-		"TF_VAR_ad_ou_description",
-		"TF_VAR_ad_gpo_name",
-		"TF_VAR_ad_gpo_domain",
-		"TF_VAR_ad_gpo_description",
-		"TF_VAR_ad_gpo_status",
+		"TF_VAR_ad_user_container",
+		"TF_VAR_ad_domain_name",
 	}
-	resource.Test(t, resource.TestCase{
+
+	path := os.Getenv("TF_VAR_ad_user_container")
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	ouName := testAccRandomName("tfacc-ou")
+	gpoName := testAccRandomName("tfacc-gpo")
+	resourceName := "ad_gplink.og"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
 		Providers: testAccProviders,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADGPLinkExists("ad_gplink.og", 1, true, true, false),
+			testAccResourceADGPLinkExists(resourceName, 1, true, true, false),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADGPLinkConfigBasic(true, true, 1),
+				Config: testAccResourceADGPLinkConfigRandom(ouName, path, gpoName, domain, true, true, 1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGPLinkExists("ad_gplink.og", 1, true, true, true),
+					testAccResourceADGPLinkExists(resourceName, 1, true, true, true),
 				),
 			},
 			{
-				ResourceName:      "ad_gplink.og",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceADGPLinkConfigBasic(true, false, 1),
+				Config: testAccResourceADGPLinkConfigRandom(ouName, path, gpoName, domain, true, false, 1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGPLinkExists("ad_gplink.og", 1, true, false, true),
+					testAccResourceADGPLinkExists(resourceName, 1, true, false, true),
 				),
 			},
 			{
-				ResourceName:      "ad_gplink.og",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceADGPLinkConfigBasic(false, true, 1),
+				Config: testAccResourceADGPLinkConfigRandom(ouName, path, gpoName, domain, false, true, 1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGPLinkExists("ad_gplink.og", 1, false, true, true),
+					testAccResourceADGPLinkExists(resourceName, 1, false, true, true),
 				),
 			},
 			{
-				ResourceName:      "ad_gplink.og",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceADGPLinkConfigBasic(false, false, 1),
+				Config: testAccResourceADGPLinkConfigRandom(ouName, path, gpoName, domain, false, false, 1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGPLinkExists("ad_gplink.og", 1, false, false, true),
+					testAccResourceADGPLinkExists(resourceName, 1, false, false, true),
 				),
 			},
 			{
-				ResourceName:      "ad_gplink.og",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -80,84 +84,71 @@ func TestAccResourceADGPLink_basic(t *testing.T) {
 }
 
 func TestAccResourceADGPLink_badguid(t *testing.T) {
+	t.Parallel()
+
 	envVars := []string{
-		"TF_VAR_ad_ou_name",
-		"TF_VAR_ad_ou_path",
-		"TF_VAR_ad_ou_protected",
-		"TF_VAR_ad_ou_description",
+		"TF_VAR_ad_user_container",
 	}
+
+	path := os.Getenv("TF_VAR_ad_user_container")
+	ouName := testAccRandomName("tfacc-ou")
+
 	//lintignore:AT001
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccResourceADGPLinkConfigBadGUID(false, false, 1),
+				Config:      testAccResourceADGPLinkConfigBadGUIDRandom(ouName, path),
 				ExpectError: regexp.MustCompile("is not a valid uuid"),
 			},
 		},
 	})
 }
 
-func testAccResourceADGPLinkConfigBadGUID(enforced, enabled bool, order int) string {
+func testAccResourceADGPLinkConfigBadGUIDRandom(ouName, path string) string {
 	return fmt.Sprintf(`
-	variable ad_ou_name {}
-	variable ad_ou_path {}
-	variable ad_ou_protected {}
-	variable ad_ou_description {}
-
-	resource "ad_ou" "o" {
-		name = var.ad_ou_name
-		path = var.ad_ou_path
-		description = var.ad_ou_description
-		protected = var.ad_ou_protected
-	}
-		
-	resource "ad_gplink" "og" { 
-		gpo_guid = "something-horribly-wrong"
-		target_dn = ad_ou.o.dn
-		enforced = %t
-		enabled = %t
-		order = %d
-	}
-	
-	`, enforced, enabled, order)
+resource "ad_ou" "o" {
+  name        = %[1]q
+  path        = %[2]q
+  description = "Test OU for GPLink"
+  protected   = false
 }
 
-func testAccResourceADGPLinkConfigBasic(enforced, enabled bool, order int) string {
-	return fmt.Sprintf(`
-	variable ad_ou_name {}
-	variable ad_ou_path {}
-	variable ad_ou_protected {}
-	variable ad_ou_description {}
-	variable ad_gpo_name {}
-	variable ad_gpo_domain {}
-	variable ad_gpo_description {}
-	variable ad_gpo_status {}
+resource "ad_gplink" "og" {
+  gpo_guid  = "something-horribly-wrong"
+  target_dn = ad_ou.o.dn
+  enforced  = false
+  enabled   = false
+  order     = 1
+}
+`, ouName, path)
+}
 
-	resource "ad_ou" "o" {
-		name = var.ad_ou_name
-		path = var.ad_ou_path
-		description = var.ad_ou_description
-		protected = var.ad_ou_protected
-	}
-		
-	resource "ad_gpo" "g" {
-		name        = var.ad_gpo_name
-		domain      = var.ad_gpo_domain
-		description = var.ad_gpo_description
-		status      = var.ad_gpo_status
-	}
-	
-	resource "ad_gplink" "og" { 
-		gpo_guid = ad_gpo.g.id
-		target_dn = ad_ou.o.dn
-		enforced = %t
-		enabled = %t
-		order = %d
-	}
-	
-	`, enforced, enabled, order)
+func testAccResourceADGPLinkConfigRandom(ouName, path, gpoName, domain string, enforced, enabled bool, order int) string {
+	return fmt.Sprintf(`
+resource "ad_ou" "o" {
+  name        = %[1]q
+  path        = %[2]q
+  description = "Test OU for GPLink"
+  protected   = false
+}
+
+resource "ad_gpo" "g" {
+  name        = %[3]q
+  domain      = %[4]q
+  description = "Test GPO for GPLink"
+  status      = "AllSettingsEnabled"
+}
+
+resource "ad_gplink" "og" {
+  gpo_guid  = ad_gpo.g.id
+  target_dn = ad_ou.o.dn
+  enforced  = %[5]t
+  enabled   = %[6]t
+  order     = %[7]d
+}
+`, ouName, path, gpoName, domain, enforced, enabled, order)
 }
 
 func testAccResourceADGPLinkExists(resourceName string, order int, enforced, enabled, expected bool) resource.TestCheckFunc {

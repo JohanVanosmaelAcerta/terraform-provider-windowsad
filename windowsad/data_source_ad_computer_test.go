@@ -1,19 +1,27 @@
 package windowsad
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceADComputer_basic(t *testing.T) {
-	envVars := []string{"TF_VAR_ad_computer_name"}
-	resource.Test(t, resource.TestCase{
+	t.Parallel()
+
+	envVars := []string{"TF_VAR_ad_computer_container"}
+
+	container := os.Getenv("TF_VAR_ad_computer_container")
+	computerName := testAccRandomName("tfacc-pc")
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceADComputerBasic(),
+				Config: testAccDataSourceADComputerRandom(computerName, container),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
 						"data.ad_computer.dsc", "guid",
@@ -25,18 +33,15 @@ func TestAccDataSourceADComputer_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceADComputerBasic() string {
-	return `
+func testAccDataSourceADComputerRandom(name, container string) string {
+	return fmt.Sprintf(`
+resource "ad_computer" "c" {
+  name      = %[1]q
+  container = %[2]q
+}
 
-	variable "ad_computer_name" {}
-
-	resource "ad_computer" "c" {
-		name = var.ad_computer_name
-	}	
-	
-	data "ad_computer" "dsc" {
-		guid = ad_computer.c.guid
-	}
-	
-	`
+data "ad_computer" "dsc" {
+  guid = ad_computer.c.guid
+}
+`, name, container)
 }

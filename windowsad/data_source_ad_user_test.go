@@ -1,25 +1,34 @@
 package windowsad
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceADUser_basic(t *testing.T) {
+	t.Parallel()
+
 	envVars := []string{
-		"TF_VAR_ad_user_principal_name",
-		"TF_VAR_ad_user_password",
-		"TF_VAR_ad_user_sam",
-		"TF_VAR_ad_user_display_name",
 		"TF_VAR_ad_user_container",
+		"TF_VAR_ad_domain_name",
 	}
-	resource.Test(t, resource.TestCase{
+
+	container := os.Getenv("TF_VAR_ad_user_container")
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	sam := testAccRandomSAM()
+	displayName := testAccRandomName("tfacc-user")
+	password := testAccRandomPassword()
+	principalName := testAccRandomPrincipalName(domain)
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceADUserBasic(),
+				Config: testAccDataSourceADUserRandom(sam, displayName, password, principalName, container),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
 						"data.ad_user.d", "id",
@@ -31,24 +40,18 @@ func TestAccDataSourceADUser_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceADUserBasic() string {
-	return `
-	variable "ad_user_principal_name" {}
-	variable "ad_user_password" {}
-	variable "ad_user_sam" {}
-	variable "ad_user_display_name" {}
-	variable "ad_user_container" {}
+func testAccDataSourceADUserRandom(sam, displayName, password, principalName, container string) string {
+	return fmt.Sprintf(`
+resource "ad_user" "a" {
+  sam_account_name = %[1]q
+  display_name     = %[2]q
+  initial_password = %[3]q
+  principal_name   = %[4]q
+  container        = %[5]q
+}
 
-	resource "ad_user" "a" {
-		principal_name = var.ad_user_principal_name
-		sam_account_name = var.ad_user_sam
-		initial_password = var.ad_user_password
-		display_name = var.ad_user_display_name
-		container = var.ad_user_container
-	}
-	 
-	 data "ad_user" "d" {
-		 user_id = ad_user.a.id
-	 }
-`
+data "ad_user" "d" {
+  user_id = ad_user.a.id
+}
+`, sam, displayName, password, principalName, container)
 }
