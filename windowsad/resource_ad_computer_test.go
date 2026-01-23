@@ -18,7 +18,7 @@ func TestAccResourceADComputer_basic(t *testing.T) {
 	envVars := []string{"TF_VAR_ad_computer_container"}
 
 	container := os.Getenv("TF_VAR_ad_computer_container")
-	computerName := testAccRandomName("tfacc-pc")
+	computerName := testAccShortRandomName("pc")
 	sam := testAccRandomSAM()
 	resourceName := "windowsad_computer.c"
 
@@ -49,7 +49,7 @@ func TestAccResourceADComputer_description(t *testing.T) {
 	envVars := []string{"TF_VAR_ad_computer_container"}
 
 	container := os.Getenv("TF_VAR_ad_computer_container")
-	computerName := testAccRandomName("tfacc-pc")
+	computerName := testAccShortRandomName("pc")
 	sam := testAccRandomSAM()
 	description := "Test computer description"
 	resourceName := "windowsad_computer.c"
@@ -88,7 +88,7 @@ func TestAccResourceADComputer_move(t *testing.T) {
 	envVars := []string{"TF_VAR_ad_computer_container"}
 
 	container := os.Getenv("TF_VAR_ad_computer_container")
-	computerName := testAccRandomName("tfacc-pc")
+	computerName := testAccShortRandomName("pc")
 	sam := testAccRandomSAM()
 	ouName := testAccRandomName("tfacc-ou")
 	resourceName := "windowsad_computer.c"

@@ -43,6 +43,26 @@ func testAccRandomName(prefix string) string {
 	return acctest.RandomWithPrefix(prefix)
 }
 
+// testAccShortRandomName generates a short unique name suitable for sAMAccountName (max 15 chars for computers).
+// Uses a 6-character random suffix to ensure uniqueness while staying within AD limits.
+func testAccShortRandomName(prefix string) string {
+	maxLen := 15
+	suffix := acctest.RandString(6)
+	if len(prefix)+1+len(suffix) > maxLen {
+		// Truncate prefix if needed to fit within maxLen
+		availableForPrefix := maxLen - 1 - len(suffix) // -1 for the hyphen
+		if availableForPrefix > 0 {
+			prefix = prefix[:availableForPrefix]
+		} else {
+			prefix = ""
+		}
+	}
+	if prefix == "" {
+		return suffix
+	}
+	return fmt.Sprintf("%s-%s", prefix, suffix)
+}
+
 // testAccRandomPassword generates a random password that meets AD complexity requirements.
 func testAccRandomPassword() string {
 	return fmt.Sprintf("P@ss%s!", acctest.RandString(12))

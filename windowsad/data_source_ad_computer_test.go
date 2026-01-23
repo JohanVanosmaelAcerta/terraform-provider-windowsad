@@ -13,7 +13,7 @@ func TestAccDataSourceADComputer_basic(t *testing.T) {
 	envVars := []string{"TF_VAR_ad_computer_container"}
 
 	container := os.Getenv("TF_VAR_ad_computer_container")
-	computerName := testAccRandomName("tfacc-pc")
+	computerName := testAccShortRandomName("pc")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t, envVars) },
