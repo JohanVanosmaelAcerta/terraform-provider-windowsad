@@ -60,6 +60,50 @@ This fork includes fixes from the following upstream PRs:
 - #124: Fix multiple AD user creation
 - #197: Fix password special character escaping
 
+## Development
+
+### Running Acceptance Tests
+
+Acceptance tests require a Windows runner with access to an Active Directory environment. The runner machine requires specific configuration:
+
+#### Windows Runner Configuration
+
+1. **Windows Defender Exclusions** - Newly compiled Go test binaries are blocked by real-time scanning:
+
+```powershell
+# Run as Administrator on the runner machine
+Add-MpPreference -ExclusionPath "D:\actions-runner-terraform"
+Add-MpPreference -ExclusionPath "C:\Users\s-gmsa-gha$\go"
+Add-MpPreference -ExclusionPath "C:\Users\s-gmsa-gha$\AppData\Local\go-build"
+Add-MpPreference -ExclusionPath "C:\Users\s-gmsa-gha$\AppData\Local\Temp"
+```
+
+2. **Windows Developer Mode** - Terraform plugin testing framework creates symlinks, which requires the `SeCreateSymbolicLinkPrivilege`:
+
+```powershell
+# Run as Administrator on the runner machine
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+```
+
+Or enable via: Settings → For developers → Developer Mode
+
+3. **Reboot** the runner after applying these changes.
+
+#### Environment Variables
+
+The acceptance tests require these environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `WINDOWSAD_HOSTNAME` | Domain controller hostname for WinRM |
+| `WINDOWSAD_USER` | AD admin username |
+| `WINDOWSAD_PASSWORD` | AD admin password |
+| `WINDOWSAD_KRB_REALM` | Kerberos realm |
+| `TF_VAR_ad_domain_name` | AD domain name (e.g., `example.com`) |
+| `TF_VAR_ad_user_container` | OU for test users |
+| `TF_VAR_ad_group_container` | OU for test groups |
+| `TF_VAR_ad_computer_container` | OU for test computers |
+
 ## Contributing
 
 We welcome contributions! Please [create an issue](https://github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/issues/new) to discuss changes before submitting a PR.
