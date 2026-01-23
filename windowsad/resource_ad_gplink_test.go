@@ -15,7 +15,6 @@ import (
 )
 
 func TestAccResourceADGPLink_basic(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_user_container",
@@ -84,7 +83,6 @@ func TestAccResourceADGPLink_basic(t *testing.T) {
 }
 
 func TestAccResourceADGPLink_badguid(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_user_container",

@@ -17,7 +17,6 @@ import (
 )
 
 func TestAccResourceADUser_basic(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_user_container",
@@ -68,7 +67,6 @@ func TestAccResourceADUser_basic(t *testing.T) {
 }
 
 func TestAccResourceADUser_custom_attributes_basic(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_user_container",
@@ -108,7 +106,6 @@ func TestAccResourceADUser_custom_attributes_basic(t *testing.T) {
 }
 
 func TestAccResourceADUser_custom_attributes_extended(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_user_container",
@@ -167,7 +164,6 @@ func TestAccResourceADUser_custom_attributes_extended(t *testing.T) {
 }
 
 func TestAccResourceADUser_modify(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_user_container",
@@ -214,7 +210,6 @@ func TestAccResourceADUser_modify(t *testing.T) {
 }
 
 func TestAccResourceADUser_UAC(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_user_container",

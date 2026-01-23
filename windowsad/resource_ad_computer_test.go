@@ -14,7 +14,6 @@ import (
 )
 
 func TestAccResourceADComputer_basic(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{"TF_VAR_ad_computer_container"}
 
@@ -46,7 +45,6 @@ func TestAccResourceADComputer_basic(t *testing.T) {
 }
 
 func TestAccResourceADComputer_description(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{"TF_VAR_ad_computer_container"}
 
@@ -86,7 +84,6 @@ func TestAccResourceADComputer_description(t *testing.T) {
 }
 
 func TestAccResourceADComputer_move(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{"TF_VAR_ad_computer_container"}
 

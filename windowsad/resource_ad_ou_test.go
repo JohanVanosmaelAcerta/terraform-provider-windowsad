@@ -14,7 +14,6 @@ import (
 )
 
 func TestAccResourceADOU_basic(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_user_container",

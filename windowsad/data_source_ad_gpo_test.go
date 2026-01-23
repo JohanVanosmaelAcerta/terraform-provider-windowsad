@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccDatasourceADGPO_basic(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{"TF_VAR_ad_domain_name"}
 

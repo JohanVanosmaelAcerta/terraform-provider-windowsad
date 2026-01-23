@@ -14,7 +14,6 @@ import (
 )
 
 func TestAccResourceADGroup_basic(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_group_container",
@@ -48,7 +47,6 @@ func TestAccResourceADGroup_basic(t *testing.T) {
 }
 
 func TestAccResourceADGroup_categories(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_group_container",
@@ -83,7 +81,6 @@ func TestAccResourceADGroup_categories(t *testing.T) {
 }
 
 func TestAccResourceADGroup_scopes(t *testing.T) {
-	t.Parallel()
 
 	envVars := []string{
 		"TF_VAR_ad_group_container",
