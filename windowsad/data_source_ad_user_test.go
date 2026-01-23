@@ -24,7 +24,7 @@ func TestAccDataSourceADUser_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceADUserRandom(sam, displayName, password, principalName, container),

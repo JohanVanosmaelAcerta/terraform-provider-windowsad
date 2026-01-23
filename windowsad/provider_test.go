@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -12,15 +13,15 @@ import (
 // testAccProvider is a shared provider instance used by helper functions that need Meta().
 var testAccProvider *schema.Provider
 
-// testAccProviderFactories returns a map of provider factories for acceptance tests.
-// This approach is required for SDK v2 to use the local provider instead of downloading from the registry.
-var testAccProviderFactories map[string]func() (*schema.Provider, error)
+// testAccProtoV5ProviderFactories returns a map of ProtoV5 provider factories for acceptance tests.
+// This is required for SDK v2.34+ to properly use the local provider without registry lookups.
+var testAccProtoV5ProviderFactories map[string]func() (tfprotov5.ProviderServer, error)
 
 func init() {
 	testAccProvider = Provider()
-	testAccProviderFactories = map[string]func() (*schema.Provider, error){
-		"ad": func() (*schema.Provider, error) {
-			return testAccProvider, nil
+	testAccProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){
+		"ad": func() (tfprotov5.ProviderServer, error) {
+			return schema.NewGRPCProviderServer(testAccProvider), nil
 		},
 	}
 }
