@@ -50,30 +50,13 @@ jobs:
             exit 1
           }
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.9.8"
-          terraform_wrapper: false
-
-      - name: Get Terraform path
-        id: terraform-path
-        shell: pwsh
-        run: |
-          $tfPath = (Get-Command terraform).Source
-          Write-Host "Terraform path: $tfPath"
-          "terraform_path=$tfPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-
       - name: Run acceptance tests
         env:
           # Use project-local directories to avoid Windows Defender blocking temp executables
-          # See issue #38 for required runner configuration
+          # See README.md for required runner configuration (Defender exclusions, Developer Mode)
           GOCACHE: ${{ github.workspace }}\.go-cache
           GOTMPDIR: ${{ github.workspace }}\.go-tmp
-          # Use real Terraform binary to avoid symlink privilege issues on Windows
-          TF_ACC_TERRAFORM_PATH: ${{ steps.terraform-path.outputs.terraform_path }}
         run: |
           New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
           New-Item -ItemType Directory -Force -Path $env:GOTMPDIR | Out-Null
-          Write-Host "Using Terraform at: $env:TF_ACC_TERRAFORM_PATH"
           go test ./windowsad -v -parallel 10 -timeout 60m
