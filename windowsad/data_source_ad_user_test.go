@@ -54,3 +54,50 @@ data "windowsad_user" "d" {
 }
 `, sam, displayName, password, principalName, container)
 }
+
+func TestAccDataSourceADUser_bySAM(t *testing.T) {
+
+	envVars := []string{
+		"TF_VAR_ad_user_container",
+		"TF_VAR_ad_domain_name",
+	}
+
+	container := os.Getenv("TF_VAR_ad_user_container")
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	sam := testAccRandomSAM()
+	displayName := testAccRandomName("tfacc-user")
+	password := testAccRandomPassword()
+	principalName := testAccRandomPrincipalName(domain)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceADUserBySAM(sam, displayName, password, principalName, container),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(
+						"data.windowsad_user.d", "sam_account_name",
+						"windowsad_user.a", "sam_account_name",
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDataSourceADUserBySAM(sam, displayName, password, principalName, container string) string {
+	return fmt.Sprintf(`
+resource "windowsad_user" "a" {
+  sam_account_name = %[1]q
+  display_name     = %[2]q
+  initial_password = %[3]q
+  principal_name   = %[4]q
+  container        = %[5]q
+}
+
+data "windowsad_user" "d" {
+  user_id = windowsad_user.a.sam_account_name
+}
+`, sam, displayName, password, principalName, container)
+}

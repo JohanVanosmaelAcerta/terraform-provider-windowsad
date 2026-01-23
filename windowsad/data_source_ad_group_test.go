@@ -50,3 +50,46 @@ data "windowsad_group" "d" {
 }
 `, name, sam, container)
 }
+
+func TestAccDatasourceADGroup_bySAM(t *testing.T) {
+
+	envVars := []string{
+		"TF_VAR_ad_group_container",
+	}
+
+	container := os.Getenv("TF_VAR_ad_group_container")
+	groupName := testAccRandomName("tfacc-group")
+	sam := testAccRandomSAM()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDatasourceADGroupConfigBySAM(groupName, sam, container),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(
+						"data.windowsad_group.d", "sam_account_name",
+						"windowsad_group.g", "sam_account_name",
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDatasourceADGroupConfigBySAM(name, sam, container string) string {
+	return fmt.Sprintf(`
+resource "windowsad_group" "g" {
+  name             = %[1]q
+  sam_account_name = %[2]q
+  container        = %[3]q
+  scope            = "global"
+  category         = "security"
+}
+
+data "windowsad_group" "d" {
+  group_id = windowsad_group.g.sam_account_name
+}
+`, name, sam, container)
+}

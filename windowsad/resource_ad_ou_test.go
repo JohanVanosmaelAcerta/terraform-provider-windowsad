@@ -58,6 +58,41 @@ func TestAccResourceADOU_basic(t *testing.T) {
 	})
 }
 
+func TestAccResourceADOU_updateDescription(t *testing.T) {
+
+	envVars := []string{
+		"TF_VAR_ad_user_container",
+	}
+
+	path := os.Getenv("TF_VAR_ad_user_container")
+	ouName := testAccRandomName("tfacc-ou")
+	resourceName := "windowsad_ou.o"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy: resource.ComposeTestCheckFunc(
+			testAccResourceADOUExists(resourceName, "", false),
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceADOUConfigRandom(ouName, path, "Initial description", false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccResourceADOUExists(resourceName, ouName, true),
+					resource.TestCheckResourceAttr(resourceName, "description", "Initial description"),
+				),
+			},
+			{
+				Config: testAccResourceADOUConfigRandom(ouName, path, "Updated description", false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccResourceADOUExists(resourceName, ouName, true),
+					resource.TestCheckResourceAttr(resourceName, "description", "Updated description"),
+				),
+			},
+		},
+	})
+}
+
 func testAccResourceADOUConfigRandom(name, path, description string, protected bool) string {
 	return fmt.Sprintf(`
 resource "windowsad_ou" "o" {

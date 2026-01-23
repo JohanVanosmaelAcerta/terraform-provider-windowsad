@@ -44,3 +44,40 @@ data "windowsad_gpo" "g" {
 }
 `, name, domain)
 }
+
+func TestAccDatasourceADGPO_byGUID(t *testing.T) {
+
+	envVars := []string{"TF_VAR_ad_domain_name"}
+
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	gpoName := testAccRandomName("tfacc-gpo")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDatasourceADGPOConfigByGUID(gpoName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(
+						"data.windowsad_gpo.g", "name",
+						"windowsad_gpo.gpo", "name",
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDatasourceADGPOConfigByGUID(name, domain string) string {
+	return fmt.Sprintf(`
+resource "windowsad_gpo" "gpo" {
+  name   = %[1]q
+  domain = %[2]q
+}
+
+data "windowsad_gpo" "g" {
+  guid = windowsad_gpo.gpo.id
+}
+`, name, domain)
+}

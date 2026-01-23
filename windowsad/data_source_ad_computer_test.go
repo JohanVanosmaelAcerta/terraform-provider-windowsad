@@ -44,3 +44,40 @@ data "windowsad_computer" "dsc" {
 }
 `, name, container)
 }
+
+func TestAccDataSourceADComputer_byDN(t *testing.T) {
+
+	envVars := []string{"TF_VAR_ad_computer_container"}
+
+	container := os.Getenv("TF_VAR_ad_computer_container")
+	computerName := testAccShortRandomName("pc")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceADComputerByDN(computerName, container),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(
+						"data.windowsad_computer.dsc", "name",
+						"windowsad_computer.c", "name",
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDataSourceADComputerByDN(name, container string) string {
+	return fmt.Sprintf(`
+resource "windowsad_computer" "c" {
+  name      = %[1]q
+  container = %[2]q
+}
+
+data "windowsad_computer" "dsc" {
+  dn = windowsad_computer.c.dn
+}
+`, name, container)
+}

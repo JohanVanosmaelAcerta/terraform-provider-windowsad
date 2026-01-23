@@ -77,6 +77,45 @@ func testAccResourceADGPOSecurityExists(resourceName string, desired bool) resou
 	}
 }
 
+func TestAccResourceADGPOSecurity_update(t *testing.T) {
+
+	envVars := []string{
+		"TF_VAR_ad_domain_name",
+	}
+
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	gpoName := testAccRandomName("tfacc-gposec")
+	resourceName := "windowsad_gpo_security.gpo_sec"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             resource.ComposeTestCheckFunc(testAccResourceADGPOSecurityExists(resourceName, false)),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceADGPOSecurityConfigRandom(gpoName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccResourceADGPOSecurityExists(resourceName, true),
+					resource.TestCheckResourceAttr(resourceName, "password_policies.0.minimum_password_length", "3"),
+				),
+			},
+			{
+				Config: testAccResourceADGPOSecurityConfigUpdated(gpoName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccResourceADGPOSecurityExists(resourceName, true),
+					resource.TestCheckResourceAttr(resourceName, "password_policies.0.minimum_password_length", "8"),
+					resource.TestCheckResourceAttr(resourceName, "password_policies.0.maximum_password_age", "90"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccResourceADGPOSecurityConfigRandom(gpoName, domain string) string {
 	return fmt.Sprintf(`
 resource "windowsad_gpo" "gpo" {
@@ -88,6 +127,23 @@ resource "windowsad_gpo_security" "gpo_sec" {
   gpo_container = windowsad_gpo.gpo.id
   password_policies {
     minimum_password_length = 3
+  }
+}
+`, gpoName, domain)
+}
+
+func testAccResourceADGPOSecurityConfigUpdated(gpoName, domain string) string {
+	return fmt.Sprintf(`
+resource "windowsad_gpo" "gpo" {
+  name   = %[1]q
+  domain = %[2]q
+}
+
+resource "windowsad_gpo_security" "gpo_sec" {
+  gpo_container = windowsad_gpo.gpo.id
+  password_policies {
+    minimum_password_length = 8
+    maximum_password_age    = "90"
   }
 }
 `, gpoName, domain)
