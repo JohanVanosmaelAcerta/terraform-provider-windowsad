@@ -80,8 +80,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}\.go-cache
-            ${{ github.workspace }}\.go-tmp
+            ~\.cache\go-build
+            ~\go\pkg\mod
           key: ${{ runner.os }}-go-build-${{ hashFiles('**/*.go', 'go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-build-
@@ -94,8 +94,10 @@ jobs:
 
       - name: Pre-compile test binary
         env:
-          GOCACHE: ${{ github.workspace }}\.go-cache
+          GOCACHE: ${{ runner.temp }}\go-cache
         run: |
+          # Ensure cache directory exists
+          New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
           # Build test binary once, reuse for all tests
           go test -c -o windowsad.test.exe ./windowsad
           Write-Host "✓ Test binary compiled"
@@ -151,10 +153,9 @@ jobs:
 
       - name: Run acceptance tests
         env:
-          # Use project-local directories to avoid Windows Defender blocking temp executables
-          # See README.md for required runner configuration (Defender exclusions, Developer Mode)
-          GOCACHE: ${{ github.workspace }}\.go-cache
-          GOTMPDIR: ${{ github.workspace }}\.go-tmp
+          # Use runner temp directory (no spaces in path) to avoid cache issues
+          GOCACHE: ${{ runner.temp }}\go-cache
+          GOTMPDIR: ${{ runner.temp }}\go-tmp
           # Enable Terraform and provider debug logging
           TF_LOG: DEBUG
           TF_LOG_PROVIDER: DEBUG
