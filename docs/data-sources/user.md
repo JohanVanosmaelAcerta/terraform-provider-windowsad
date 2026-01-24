@@ -70,6 +70,7 @@ output "testuser_guid" {
 - `home_phone` (String) Home phone of the user object.
 - `initials` (String) Initials of the user object.
 - `mobile_phone` (String) Mobile phone of the user object.
+- `name` (String) The name of the user object (CN).
 - `office` (String) Office assigned to user object.
 - `office_phone` (String) Office phone of the user object.
 - `organization` (String) Organization assigned to user object.

@@ -17,6 +17,7 @@ import (
 // User represents an AD User
 type User struct {
 	GUID                   string `json:"ObjectGUID"`
+	Name                   string `json:"Name"`
 	SAMAccountName         string `json:"SamAccountName"`
 	PrincipalName          string `json:"UserPrincipalName"`
 	City                   string
@@ -69,7 +70,12 @@ func (u *User) NewUser(conf *config.ProviderConf) (string, error) {
 	}
 
 	log.Printf("Adding user with UPN: %q", u.PrincipalName)
-	cmds := []string{fmt.Sprintf("New-ADUser -Passthru -Name %q", u.Username)}
+	// Use Name if provided, otherwise fall back to Username (derived from UPN)
+	name := u.Name
+	if name == "" {
+		name = u.Username
+	}
+	cmds := []string{fmt.Sprintf("New-ADUser -Passthru -Name %q", name)}
 
 	cmds = append(cmds, fmt.Sprintf("-CannotChangePassword $%t", u.CannotChangePassword))
 	cmds = append(cmds, fmt.Sprintf("-PasswordNeverExpires $%t", u.PasswordNeverExpires))
@@ -450,6 +456,28 @@ func (u *User) ModifyUser(d *schema.ResourceData, conf *config.ProviderConf) err
 		}
 	}
 
+	if d.HasChange("name") {
+		newName := d.Get("name").(string)
+		cmd := fmt.Sprintf("Rename-ADObject -Identity %q -NewName %q", u.GUID, newName)
+		psOpts := CreatePSCommandOpts{
+			JSONOutput:      false,
+			ForceArray:      false,
+			ExecLocally:     conf.IsConnectionTypeLocal(),
+			PassCredentials: conf.IsPassCredentialsEnabled(),
+			Username:        conf.Settings.WinRMUsername,
+			Password:        conf.Settings.WinRMPassword,
+			Server:          conf.IdentifyDomainController(),
+		}
+		psCmd := NewPSCommand([]string{cmd}, psOpts)
+		result, err := psCmd.Run(conf)
+		if err != nil {
+			return fmt.Errorf("winrm execution failure while renaming user object: %s", err)
+		}
+		if result.ExitCode != 0 {
+			return fmt.Errorf("Rename-ADObject exited with a non zero exit code (%d), stderr: %s", result.ExitCode, result.StdErr)
+		}
+	}
+
 	return nil
 }
 
@@ -503,6 +531,7 @@ func (u *User) getOtherAttributes() (string, error) {
 func GetUserFromResource(d *schema.ResourceData) (*User, error) {
 	user := User{
 		GUID:                   d.Id(),
+		Name:                   SanitiseTFInput(d, "name"),
 		SAMAccountName:         SanitiseTFInput(d, "sam_account_name"),
 		PrincipalName:          SanitiseTFInput(d, "principal_name"),
 		DisplayName:            SanitiseTFInput(d, "display_name"),
