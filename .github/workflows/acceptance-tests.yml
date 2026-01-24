@@ -9,12 +9,25 @@ on:
 
 jobs:
   acceptance-tests:
-    name: Acceptance Tests
+    name: ${{ matrix.name }}
     # Skip for PRs from forks - they don't have access to secrets and
     # we don't want to expose internal infrastructure in logs
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Windows, X64]
-    timeout-minutes: 60
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Group 1: GPO-related tests (gpo, gplink, gpo_security)
+          - name: "GPO Tests"
+            test_pattern: "TestAcc.*(GPO|GPLink|GPSecurity)"
+          # Group 2: User and Group tests (user, group, group_membership)
+          - name: "User & Group Tests"
+            test_pattern: "TestAcc.*(User|Group)"
+          # Group 3: Computer and OU tests (computer, ou)
+          - name: "Computer & OU Tests"
+            test_pattern: "TestAcc.*(Computer|OU)"
     env:
       TF_ACC: 1
       WINDOWSAD_HOSTNAME: ${{ secrets.AD_HOSTNAME }}
@@ -162,8 +175,9 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
           New-Item -ItemType Directory -Force -Path $env:GOTMPDIR | Out-Null
-          Write-Host "=== Starting acceptance tests at $(Get-Date) ==="
+          Write-Host "=== Starting ${{ matrix.name }} at $(Get-Date) ==="
+          Write-Host "Test pattern: ${{ matrix.test_pattern }}"
           Write-Host "TF_ACC=$env:TF_ACC"
           Write-Host "WINDOWSAD_HOSTNAME=$env:WINDOWSAD_HOSTNAME"
-          # Run all acceptance tests
-          go test ./windowsad -v -count=1 -parallel=1 -timeout=45m -run "TestAcc" 2>&1 | ForEach-Object { "[$(Get-Date -Format 'HH:mm:ss')] $_" }
+          # Run tests matching this group's pattern
+          go test ./windowsad -v -count=1 -parallel=1 -timeout=30m -run "${{ matrix.test_pattern }}" 2>&1 | ForEach-Object { "[$(Get-Date -Format 'HH:mm:ss')] $_" }
