@@ -42,11 +42,27 @@ Review the [docs](docs/) folder to understand which configuration options are av
 
 ## Migrating from hashicorp/ad
 
-If you're migrating from the archived HashiCorp provider:
+This provider supports both `windowsad_*` and legacy `ad_*` resource names, making migration seamless.
 
-1. Update your provider source from `hashicorp/ad` to `JohanVanosmaelAcerta/windowsad`
-2. Rename all resources from `ad_*` to `windowsad_*`
-3. Update environment variables from `AD_*` to `WINDOWSAD_*`
+**Quick migration** (existing `ad_*` resources continue to work):
+
+1. Update provider source from `hashicorp/ad` to `JohanVanosmael/windowsad`
+2. Rename provider block from `ad` to `windowsad`
+3. Migrate Terraform state (re-import or edit state file)
+4. Run `terraform plan` — should show no changes
+
+```hcl
+# Your existing ad_user, ad_group, etc. resources work without modification!
+resource "ad_user" "example" {
+  display_name     = "John Doe"
+  sam_account_name = "jdoe"
+  # ...
+}
+```
+
+For detailed instructions, see the **[Migration Guide](docs/guides/migration-from-hashicorp-ad.md)**.
+
+> **Note:** The `ad_*` prefix is deprecated and will be removed in a future major version. Use `windowsad_*` for new configurations.
 
 ## Community Bug Fixes Included
 
