@@ -19,15 +19,14 @@ Kerberos is the recommended authentication method because:
 - **Delegation support**: Safely delegate credentials when needed (credential passing)
 - **Industry standard**: Native to Active Directory environments
 
-### Deprecated Methods
+### Supported Authentication Methods
 
-| Method | Status | Security Concerns |
-|--------|--------|-------------------|
-| **Kerberos** | ✅ Recommended | None |
-| **NTLM** | ⚠️ Deprecated | Vulnerable to relay attacks, weak hashing |
-| **Basic** | ⚠️ Deprecated | Credentials sent in cleartext |
+| Method | Status | Notes |
+|--------|--------|-------|
+| **Kerberos** | ✅ Recommended | Secure, mutual authentication |
+| **Basic** | ⚠️ Limited | Only over HTTPS on Windows clients |
 
-NTLM authentication (`winrm_use_ntlm = true`) will be removed in v0.2.0.
+Kerberos is required for non-Windows clients.
 
 ## Prerequisites
 
@@ -246,38 +245,6 @@ curl --negotiate -u : https://dc01.yourdomain.com:5986/wsman
 4. **Use keytabs** for CI/CD pipelines instead of passwords
 5. **Rotate credentials** regularly
 6. **Limit service account permissions** to only required AD operations
-
-## Migration from NTLM
-
-If you're currently using NTLM (`winrm_use_ntlm = true`):
-
-1. Set up WinRM HTTPS listener on server
-2. Create krb5.conf on your Terraform runner
-3. Update provider configuration:
-
-```hcl
-# Before (insecure)
-provider "windowsad" {
-  winrm_hostname = "server.domain.com"
-  winrm_username = "admin"
-  winrm_password = "secret"
-  winrm_use_ntlm = true  # ⚠️ Deprecated!
-}
-
-# After (secure)
-provider "windowsad" {
-  winrm_hostname = "server.domain.com"
-  winrm_username = "admin@DOMAIN.COM"
-  winrm_password = "secret"
-  winrm_proto    = "https"
-  winrm_port     = 5986
-  krb_realm      = "DOMAIN.COM"
-  krb_conf       = "/etc/krb5.conf"
-}
-```
-
-4. Test with `terraform plan`
-5. Remove `winrm_use_ntlm` from configuration
 
 ## See Also
 

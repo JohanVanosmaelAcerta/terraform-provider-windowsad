@@ -156,14 +156,14 @@ jobs:
           # Use runner temp directory (no spaces in path) to avoid cache issues
           GOCACHE: ${{ runner.temp }}\go-cache
           GOTMPDIR: ${{ runner.temp }}\go-tmp
-          # Enable Terraform and provider debug logging
-          TF_LOG: DEBUG
-          TF_LOG_PROVIDER: DEBUG
+          # Only enable debug logging when troubleshooting (adds significant overhead)
+          # TF_LOG: DEBUG
+          # TF_LOG_PROVIDER: DEBUG
         run: |
           New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
           New-Item -ItemType Directory -Force -Path $env:GOTMPDIR | Out-Null
           Write-Host "=== Starting acceptance tests at $(Get-Date) ==="
           Write-Host "TF_ACC=$env:TF_ACC"
           Write-Host "WINDOWSAD_HOSTNAME=$env:WINDOWSAD_HOSTNAME"
-          # Run tests with go test (uses cached build artifacts)
-          go test ./windowsad -v -count=1 -parallel=1 -timeout=45m -run "TestAccDataSourceADComputer_basic" 2>&1 | ForEach-Object { "[$(Get-Date -Format 'HH:mm:ss')] $_" }
+          # Run all acceptance tests
+          go test ./windowsad -v -count=1 -parallel=1 -timeout=45m -run "TestAcc" 2>&1 | ForEach-Object { "[$(Get-Date -Format 'HH:mm:ss')] $_" }

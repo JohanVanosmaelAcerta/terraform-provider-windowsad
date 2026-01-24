@@ -81,7 +81,8 @@ func resourceADComputerRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("dn", computer.DN)
 	_ = d.Set("description", computer.Description)
 	_ = d.Set("guid", computer.GUID)
-	_ = d.Set("pre2kname", computer.SAMAccountName)
+	// AD always appends $ to computer sAMAccountName, strip it for consistency with user input
+	_ = d.Set("pre2kname", strings.TrimSuffix(computer.SAMAccountName, "$"))
 	_ = d.Set("container", computer.Path)
 	_ = d.Set("sid", computer.SID.Value)
 
