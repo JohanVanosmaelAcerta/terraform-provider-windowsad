@@ -3,14 +3,14 @@ variable "username" { default = "user" }
 variable "password" { default = "password" }
 
 // remote using Basic authentication
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
 }
 
 // remote using NTLM authentication
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
@@ -18,7 +18,7 @@ provider "ad" {
 }
 
 // remote using NTLM authentication and HTTPS
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
@@ -29,7 +29,7 @@ provider "ad" {
 }
 
 // remote using Kerberos authentication
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
@@ -37,7 +37,7 @@ provider "ad" {
 }
 
 // remote using Kerberos authentication with krb5.conf file
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
@@ -45,7 +45,7 @@ provider "ad" {
 }
 
 // local (windows only)
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = ""
   winrm_username = ""
   winrm_password = ""

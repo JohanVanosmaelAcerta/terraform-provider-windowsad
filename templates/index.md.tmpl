@@ -1,17 +1,23 @@
 ---
 layout: ""
-page_title: "Provider: AD (Active Directory)"
+page_title: "Provider: Windows AD (Active Directory)"
 description: |-
-  The AD (Active Directory) provider provides resources to interact with an AD domain controller .
+  The Windows AD provider provides resources to interact with an AD domain controller.
 ---
 
-# AD (Active Directory) Provider
+# Windows AD (Active Directory) Provider
 
-The AD (Active Directory) provider provides resources to interact with an AD domain controller.
+The Windows AD provider provides resources to interact with an AD domain controller.
+
+This is a maintained fork of the archived [HashiCorp terraform-provider-ad](https://github.com/hashicorp/terraform-provider-ad).
 
 Requirements:
  - Windows Server 2012R2 or greater.
  - WinRM enabled.
+
+## Migration from hashicorp/ad
+
+This provider supports both `windowsad_*` (recommended) and legacy `ad_*` resource names for easy migration. See the [Migration Guide](guides/migration-from-hashicorp-ad.md) for details.
 
 ## Note about Kerberos Authentication
 
@@ -44,9 +50,9 @@ Kerberos as its authentication when `krb_realm` is set.
 ## Double hop Authentication
 
 Starting with version 0.4.3 it is possible to point the provider to a host other than a Domain Controller and perform
-all the management tasks through that host. Here is an example of The provider config:
+all the management tasks through that host. Here is an example of the provider config:
 ```
-provider "ad" {
+provider "windowsad" {
   winrm_hostname         = "10.0.0.1"
   winrm_username         = var.username
   winrm_password         = var.password
@@ -85,7 +91,7 @@ In this case krb5.conf would look like this:
  A few things to note:
     - Double Hop Authentication is only enabled when using https
     - Authentication between management host and DC is done via Kerberos
-    - The [AD Powershell module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=winserver2012r2-ps) as well as the [Group Policy Powersehll Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps) is expected to be installed
+    - The [AD Powershell module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=winserver2012r2-ps) as well as the [Group Policy Powershell Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps) is expected to be installed
       on the server before running the provider.
 
 
@@ -102,7 +108,7 @@ Note: it will set to local only `if all 3 parameters are set to null`
 
 ### Example
 ```terraform
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = ""
   winrm_username = ""
   winrm_password = ""
