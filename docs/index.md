@@ -15,6 +15,49 @@ Requirements:
  - Windows Server 2012R2 or greater.
  - WinRM enabled with HTTPS listener (recommended).
  - Kerberos authentication configured (recommended).
+ - Appropriate AD permissions (see below).
+
+## Required Permissions
+
+The service account used by the provider needs specific Active Directory permissions depending on which resources you manage:
+
+| Resource | Required Permission |
+|----------|---------------------|
+| `windowsad_user` | Create/modify users in target OU |
+| `windowsad_group` | Create/modify groups in target OU |
+| `windowsad_group_membership` | Modify group membership |
+| `windowsad_ou` | Create/modify OUs in target container |
+| `windowsad_computer` | Create/modify computer accounts in target OU |
+| `windowsad_gpo` | **Group Policy Creator Owners** membership |
+| `windowsad_gplink` | Link GPOs to OUs (requires GPO and OU permissions) |
+| `windowsad_gpo_security` | Modify GPO security settings |
+
+### GPO Permissions
+
+Creating and managing Group Policy Objects requires membership in the **Group Policy Creator Owners** group or equivalent permissions:
+
+```powershell
+# Add service account to Group Policy Creator Owners
+Add-ADGroupMember -Identity "Group Policy Creator Owners" -Members "svc-terraform"
+```
+
+Without this permission, GPO operations will fail with:
+```
+An operations error occurred. (Exception from HRESULT: 0x80072020)
+```
+
+### Recommended: Delegated Administration
+
+For production use, create a dedicated service account with delegated permissions rather than using Domain Admins:
+
+```powershell
+# Example: Delegate OU management to service account
+$ou = "OU=Terraform,DC=example,DC=com"
+$account = "EXAMPLE\svc-terraform"
+
+# Grant full control over the OU and child objects
+dsacls $ou /G "${account}:GA" /I:T
+```
 
 ## Security Defaults (v0.1.0+)
 
