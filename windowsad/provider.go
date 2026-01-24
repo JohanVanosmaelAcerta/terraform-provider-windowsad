@@ -112,13 +112,22 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			// Primary names (recommended)
 			"windowsad_user":     dataSourceADUser(),
 			"windowsad_group":    dataSourceADGroup(),
 			"windowsad_gpo":      dataSourceADGPO(),
 			"windowsad_computer": dataSourceADComputer(),
 			"windowsad_ou":       dataSourceADOU(),
+			// Legacy aliases for migration from hashicorp/ad provider
+			// Deprecated: Use windowsad_* names for new configurations
+			"ad_user":     dataSourceADUser(),
+			"ad_group":    dataSourceADGroup(),
+			"ad_gpo":      dataSourceADGPO(),
+			"ad_computer": dataSourceADComputer(),
+			"ad_ou":       dataSourceADOU(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			// Primary names (recommended)
 			"windowsad_user":             resourceADUser(),
 			"windowsad_group":            resourceADGroup(),
 			"windowsad_group_membership": resourceADGroupMembership(),
@@ -127,6 +136,16 @@ func Provider() *schema.Provider {
 			"windowsad_computer":         resourceADComputer(),
 			"windowsad_ou":               resourceADOU(),
 			"windowsad_gplink":           resourceADGPLink(),
+			// Legacy aliases for migration from hashicorp/ad provider
+			// Deprecated: Use windowsad_* names for new configurations
+			"ad_user":             resourceADUser(),
+			"ad_group":            resourceADGroup(),
+			"ad_group_membership": resourceADGroupMembership(),
+			"ad_gpo":              resourceADGPO(),
+			"ad_gpo_security":     resourceADGPOSecurity(),
+			"ad_computer":         resourceADComputer(),
+			"ad_ou":               resourceADOU(),
+			"ad_gplink":           resourceADGPLink(),
 		},
 		ConfigureFunc: initProviderConfig,
 	}
