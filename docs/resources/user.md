@@ -27,6 +27,16 @@ resource "windowsad_user" "u" {
   })
 }
 
+# example with custom name (CN)
+resource "windowsad_user" "with_custom_name" {
+  principal_name   = "jsmith@example.com"
+  sam_account_name = "jsmith"
+  display_name     = "John Smith"
+  name             = "Smith, John"  # Custom CN instead of "jsmith"
+  given_name       = "John"
+  surname          = "Smith"
+}
+
 
 # all user attributes
 variable principal_name2 { default = "testuser2" }
@@ -105,6 +115,7 @@ resource "windowsad_user" "u2" {
 - `initial_password` (String) The user's initial password. This will be set on creation but will *not* be enforced in subsequent plans.
 - `initials` (String) Specifies the initials that represent part of a user's name. Maximum 6 char.
 - `mobile_phone` (String) Specifies the user's mobile phone number. This parameter sets the MobilePhone property of a user object.
+- `name` (String) The name of the user object (CN). If not specified, defaults to the username portion of principal_name.
 - `office` (String) Specifies the location of the user's office or place of business. This parameter sets the Office property of a user object.
 - `office_phone` (String) Specifies the user's office telephone number. This parameter sets the OfficePhone property of a user object.
 - `organization` (String) Specifies the user's organization. This parameter sets the Organization property of a user object.
