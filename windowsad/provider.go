@@ -2,6 +2,7 @@ package windowsad
 
 import (
 	"fmt"
+	"log"
 	"runtime"
 	"strings"
 
@@ -53,14 +54,14 @@ func Provider() *schema.Provider {
 			"winrm_port": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("WINDOWSAD_PORT", 5985),
-				Description: "The port WinRM is listening for connections. (default: 5985, environment variable: WINDOWSAD_PORT)",
+				DefaultFunc: schema.EnvDefaultFunc("WINDOWSAD_PORT", 5986),
+				Description: "The port WinRM is listening for connections. (default: 5986 for HTTPS, environment variable: WINDOWSAD_PORT)",
 			},
 			"winrm_proto": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("WINDOWSAD_PROTO", "http"),
-				Description: "The WinRM protocol we will use. (default: http, environment variable: WINDOWSAD_PROTO)",
+				DefaultFunc: schema.EnvDefaultFunc("WINDOWSAD_PROTO", "https"),
+				Description: "The WinRM protocol we will use. (default: https, environment variable: WINDOWSAD_PROTO). Note: HTTP is deprecated for security reasons.",
 			},
 			"winrm_insecure": {
 				Type:        schema.TypeBool,
@@ -96,7 +97,8 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("WINDOWSAD_WINRM_USE_NTLM", false),
-				Description: "Use NTLM authentication. (default: false, environment variable: WINDOWSAD_WINRM_USE_NTLM)",
+				Description: "DEPRECATED: Use NTLM authentication. NTLM is insecure and will be removed in v0.2.0. Use Kerberos instead. (default: false, environment variable: WINDOWSAD_WINRM_USE_NTLM)",
+				Deprecated:  "NTLM authentication is insecure (vulnerable to relay attacks) and will be removed in v0.2.0. Configure Kerberos authentication using krb_realm instead.",
 			},
 			"winrm_pass_credentials": {
 				Type:        schema.TypeBool,
@@ -152,6 +154,26 @@ func Provider() *schema.Provider {
 }
 
 func initProviderConfig(d *schema.ResourceData) (interface{}, error) {
+	// Security warnings for deprecated authentication methods
+	if d.Get("winrm_use_ntlm").(bool) {
+		log.Println("[WARN] NTLM authentication is deprecated and will be removed in v0.2.0. " +
+			"NTLM is vulnerable to relay attacks. Please migrate to Kerberos authentication by setting krb_realm.")
+	}
+
+	proto := d.Get("winrm_proto").(string)
+	hostname := d.Get("winrm_hostname").(string)
+	if strings.ToLower(proto) == "http" && hostname != "localhost" && hostname != "127.0.0.1" {
+		log.Println("[WARN] Using HTTP protocol for WinRM is insecure and deprecated. " +
+			"Credentials are transmitted in cleartext (base64 encoded). Please use HTTPS (winrm_proto = \"https\").")
+	}
+
+	// Warning for non-Windows platforms without Kerberos
+	krbRealm := d.Get("krb_realm").(string)
+	if runtime.GOOS != "windows" && krbRealm == "" && !d.Get("winrm_use_ntlm").(bool) {
+		log.Println("[WARN] Running on non-Windows without krb_realm configured. " +
+			"Kerberos authentication is recommended for security. Basic authentication will be used as fallback.")
+	}
+
 	cfg, err := config.NewConfig(d)
 	if err != nil {
 		return nil, err
