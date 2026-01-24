@@ -7,9 +7,37 @@
 [![Releases](https://img.shields.io/github/release/JohanVanosmaelAcerta/terraform-provider-windowsad.svg)](https://github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/releases)
 [![LICENSE](https://img.shields.io/github/license/JohanVanosmaelAcerta/terraform-provider-windowsad.svg)](https://github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/blob/main/LICENSE)
 
-This Windows AD provider for Terraform allows you to manage users, groups and group policies in your AD installation.
+This Windows AD provider for Terraform allows you to manage users, groups, computers, OUs, and Group Policy Objects in your Active Directory environment.
 
-This is a maintained fork of the archived [HashiCorp terraform-provider-ad](https://github.com/hashicorp/terraform-provider-ad), with community bug fixes applied and ongoing development.
+## About This Project
+
+This provider is a **community continuation** of the archived [HashiCorp terraform-provider-ad](https://github.com/hashicorp/terraform-provider-ad). When HashiCorp archived the original provider in 2023, the community was left without official support for managing Active Directory via Terraform.
+
+### Goals
+
+This project aims to:
+
+1. **Maintain the WinRM/PowerShell approach** — Continue using the proven WinRM-based architecture that executes PowerShell commands remotely, rather than rewriting with different AD libraries
+2. **Implement missing AD and GPO features** — Add support for AD and GPO PowerShell module capabilities not covered by the original provider
+3. **Merge outstanding community contributions** — Incorporate the valuable bug fixes and features from open PRs on the archived repository
+4. **Address open issues** — Fix bugs and implement feature requests that were filed but never addressed
+5. **Improve security** — Enforce modern authentication (Kerberos over HTTPS) and remove insecure options
+
+### Heritage from hashicorp/ad
+
+This fork includes fixes from these upstream PRs that were never merged:
+
+| PR | Description |
+|----|-------------|
+| [#197](https://github.com/hashicorp/terraform-provider-ad/pull/197) | Fix password special character escaping |
+| [#173](https://github.com/hashicorp/terraform-provider-ad/pull/173) | Fix custom_attributes hyphen/number issues |
+| [#166](https://github.com/hashicorp/terraform-provider-ad/pull/166) | Permit empty group membership |
+| [#159](https://github.com/hashicorp/terraform-provider-ad/pull/159) | Remove leaf objects on computer delete (recursive delete) |
+| [#156](https://github.com/hashicorp/terraform-provider-ad/pull/156) | Use slash as delimiter instead of underscore |
+| [#128](https://github.com/hashicorp/terraform-provider-ad/pull/128) | Fix cannot_change_password state detection |
+| [#124](https://github.com/hashicorp/terraform-provider-ad/pull/124) | Fix multiple AD user creation |
+
+See our [GitHub Issues](https://github.com/JohanVanosmaelAcerta/terraform-provider-windowsad/issues) for the roadmap of additional features and fixes planned.
 
 ## Requirements
 
@@ -63,18 +91,6 @@ resource "ad_user" "example" {
 For detailed instructions, see the **[Migration Guide](docs/guides/migration-from-hashicorp-ad.md)**.
 
 > **Note:** The `ad_*` prefix is deprecated and will be removed in a future major version. Use `windowsad_*` for new configurations.
-
-## Community Bug Fixes Included
-
-This fork includes fixes from the following upstream PRs:
-
-- #173: Fix custom_attributes hyphen/number issues
-- #166: Permit empty group membership
-- #159: Remove leaf objects on computer delete (recursive delete)
-- #156: Use slash as delimiter instead of underscore
-- #128: Fix cannot_change_password state detection
-- #124: Fix multiple AD user creation
-- #197: Fix password special character escaping
 
 ## Development
 

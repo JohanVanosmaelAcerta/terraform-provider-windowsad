@@ -9,13 +9,23 @@ description: |-
 
 The Windows AD provider provides resources to interact with an AD domain controller.
 
-This is a maintained fork of the archived [HashiCorp terraform-provider-ad](https://github.com/hashicorp/terraform-provider-ad).
+## About This Provider
 
-Requirements:
- - Windows Server 2012R2 or greater.
- - WinRM enabled with HTTPS listener (recommended).
- - Kerberos authentication configured (recommended).
- - Appropriate AD permissions (see below).
+This provider is a **community continuation** of the archived [HashiCorp terraform-provider-ad](https://github.com/hashicorp/terraform-provider-ad). When HashiCorp archived the original provider, this fork was created to:
+
+- **Maintain the WinRM/PowerShell approach** — Continue using remote PowerShell execution via WinRM
+- **Implement missing features** — Add AD and GPO PowerShell module capabilities not in the original
+- **Merge community contributions** — Incorporate bug fixes from unmerged upstream PRs
+- **Improve security** — Enforce Kerberos authentication over HTTPS
+
+See the [GitHub repository](https://github.com/JohanVanosmaelAcerta/terraform-provider-windowsad) for the full roadmap and heritage from the original provider.
+
+## Requirements
+
+- Windows Server 2012R2 or greater.
+- WinRM enabled with HTTPS listener (recommended).
+- Kerberos authentication configured (required for non-Windows clients).
+- Appropriate AD permissions (see below).
 
 ## Required Permissions
 
