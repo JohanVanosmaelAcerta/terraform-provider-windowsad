@@ -14,24 +14,29 @@ import (
 )
 
 func TestAccResourceADComputer_basic(t *testing.T) {
-	computerName := os.Getenv("TF_VAR_ad_computer_name")
 
-	envVars := []string{"TF_VAR_ad_computer_name", "TF_VAR_ad_computer_sam"}
+	envVars := []string{"TF_VAR_ad_computer_container"}
+
+	container := os.Getenv("TF_VAR_ad_computer_container")
+	computerName := testAccShortRandomName("pc")
+	sam := testAccRandomSAM()
+	resourceName := "windowsad_computer.c"
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADComputerExists("ad_computer.c", computerName, false),
+			testAccResourceADComputerExists(resourceName, computerName, false),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADComputerConfigBasic(),
+				Config: testAccResourceADComputerConfigRandom(computerName, sam, container),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADComputerExists("ad_computer.c", computerName, true),
+					testAccResourceADComputerExists(resourceName, computerName, true),
 				),
 			},
 			{
-				ResourceName:      "ad_computer.c",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -40,33 +45,38 @@ func TestAccResourceADComputer_basic(t *testing.T) {
 }
 
 func TestAccResourceADComputer_description(t *testing.T) {
-	computerName := os.Getenv("TF_VAR_ad_computer_name")
-	description := os.Getenv("TF_VAR_ad_computer_description")
 
-	envVars := []string{"TF_VAR_ad_computer_name", "TF_VAR_ad_computer_description", "TF_VAR_ad_computer_sam"}
+	envVars := []string{"TF_VAR_ad_computer_container"}
+
+	container := os.Getenv("TF_VAR_ad_computer_container")
+	computerName := testAccShortRandomName("pc")
+	sam := testAccRandomSAM()
+	description := "Test computer description"
+	resourceName := "windowsad_computer.c"
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADComputerDescriptionExists("ad_computer.c", computerName, false),
+			testAccResourceADComputerDescriptionExists(resourceName, computerName, false),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADComputerConfigBasic(),
+				Config: testAccResourceADComputerConfigRandom(computerName, sam, container),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADComputerExists("ad_computer.c", computerName, true),
+					testAccResourceADComputerExists(resourceName, computerName, true),
 				),
 			},
 			{
-				Config: testAccResourceADComputerConfigDescription(),
+				Config: testAccResourceADComputerConfigDescriptionRandom(computerName, sam, container, description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADComputerDescriptionExists("ad_computer.c", description, true),
+					testAccResourceADComputerDescriptionExists(resourceName, description, true),
 				),
 			},
 			{
-				Config: testAccResourceADComputerConfigBasic(),
+				Config: testAccResourceADComputerConfigRandom(computerName, sam, container),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADComputerDescriptionExists("ad_computer.c", "", true),
+					testAccResourceADComputerDescriptionExists(resourceName, "", true),
 				),
 			},
 		},
@@ -74,76 +84,73 @@ func TestAccResourceADComputer_description(t *testing.T) {
 }
 
 func TestAccResourceADComputer_move(t *testing.T) {
-	computerName := os.Getenv("TF_VAR_ad_computer_name")
 
-	envVars := []string{"TF_VAR_ad_computer_name", "TF_VAR_ad_computer_sam", "TF_VAR_ad_ou_name", "TF_VAR_ad_ou_path"}
+	envVars := []string{"TF_VAR_ad_computer_container"}
+
+	container := os.Getenv("TF_VAR_ad_computer_container")
+	computerName := testAccShortRandomName("pc")
+	sam := testAccRandomSAM()
+	ouName := testAccRandomName("tfacc-ou")
+	resourceName := "windowsad_computer.c"
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADComputerExists("ad_computer.c", computerName, false),
+			testAccResourceADComputerExists(resourceName, computerName, false),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADComputerConfigBasic(),
+				Config: testAccResourceADComputerConfigRandom(computerName, sam, container),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADComputerExists("ad_computer.c", computerName, true),
+					testAccResourceADComputerExists(resourceName, computerName, true),
 				),
 			},
 			{
-				Config: testAccResourceADComputerConfigMove(),
+				Config: testAccResourceADComputerConfigMoveRandom(computerName, sam, container, ouName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADComputerExists("ad_computer.c", computerName, true),
+					testAccResourceADComputerExists(resourceName, computerName, true),
 				),
 			},
 		},
 	})
 }
 
-func testAccResourceADComputerConfigBasic() string {
-	return `
-variable "ad_computer_name" {}
-variable "ad_computer_sam" {}
-
-resource "ad_computer" "c" {
-	name = var.ad_computer_name
-	pre2kname = var.ad_computer_sam
+func testAccResourceADComputerConfigRandom(name, sam, container string) string {
+	return fmt.Sprintf(`
+resource "windowsad_computer" "c" {
+  name      = %[1]q
+  pre2kname = %[2]q
+  container = %[3]q
 }
-`
+`, name, sam, container)
 }
 
-func testAccResourceADComputerConfigDescription() string {
-	return `
-variable "ad_computer_name" {}
-variable "ad_computer_sam" {}
-variable "ad_computer_description" {}
-
-resource "ad_computer" "c" {
-	name = var.ad_computer_name
-	pre2kname = var.ad_computer_sam
-	description = var.ad_computer_description
+func testAccResourceADComputerConfigDescriptionRandom(name, sam, container, description string) string {
+	return fmt.Sprintf(`
+resource "windowsad_computer" "c" {
+  name        = %[1]q
+  pre2kname   = %[2]q
+  container   = %[3]q
+  description = %[4]q
 }
-`
+`, name, sam, container, description)
 }
 
-func testAccResourceADComputerConfigMove() string {
-	return `
-variable "ad_computer_name" {}
-variable "ad_computer_sam" {}
-variable "ad_ou_name" {}
-variable "ad_ou_path" {}
-
-resource "ad_ou" "o" { 
-	name = var.ad_ou_name
-	path = var.ad_ou_path
+func testAccResourceADComputerConfigMoveRandom(name, sam, parentContainer, ouName string) string {
+	return fmt.Sprintf(`
+resource "windowsad_ou" "o" {
+  name      = %[4]q
+  path      = %[3]q
+  protected = false
 }
 
-resource "ad_computer" "c" {
-	name = var.ad_computer_name
-	pre2kname = var.ad_computer_sam
-	container = ad_ou.o.dn
+resource "windowsad_computer" "c" {
+  name      = %[1]q
+  pre2kname = %[2]q
+  container = windowsad_ou.o.dn
 }
-`
+`, name, sam, parentContainer, ouName)
 }
 
 func testAccResourceADComputerExists(resource, name string, expected bool) resource.TestCheckFunc {

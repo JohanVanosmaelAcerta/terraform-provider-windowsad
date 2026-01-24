@@ -1,28 +1,32 @@
 package windowsad
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceADOU_basic(t *testing.T) {
+
 	envVars := []string{
-		"TF_VAR_ad_ou_name",
-		"TF_VAR_ad_ou_path",
-		"TF_VAR_ad_ou_protected",
-		"TF_VAR_ad_ou_description",
+		"TF_VAR_ad_user_container",
 	}
+
+	path := os.Getenv("TF_VAR_ad_user_container")
+	ouName := testAccRandomName("tfacc-ou")
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceADOUBasic(),
+				Config: testAccDataSourceADOURandom(ouName, path),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
-						"data.ad_ou.ods", "name",
-						"ad_ou.o", "name",
+						"data.windowsad_ou.ods", "name",
+						"windowsad_ou.o", "name",
 					),
 				),
 			},
@@ -30,22 +34,17 @@ func TestAccDataSourceADOU_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceADOUBasic() string {
-	return `
-	variable ad_ou_name {}
-	variable ad_ou_path {}
-	variable ad_ou_protected {}
-	variable ad_ou_description {}
+func testAccDataSourceADOURandom(name, path string) string {
+	return fmt.Sprintf(`
+resource "windowsad_ou" "o" {
+  name        = %[1]q
+  path        = %[2]q
+  description = "Test OU for data source"
+  protected   = false
+}
 
-	resource "ad_ou" "o" {
-		name = var.ad_ou_name
-		path = var.ad_ou_path
-		description = var.ad_ou_description
-		protected = var.ad_ou_protected
-	}
-
-	data "ad_ou" "ods" {
-		dn = ad_ou.o.dn
-	}
-`
+data "windowsad_ou" "ods" {
+  dn = windowsad_ou.o.dn
+}
+`, name, path)
 }

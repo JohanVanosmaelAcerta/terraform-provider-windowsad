@@ -14,30 +14,31 @@ import (
 )
 
 func TestAccResourceADGroup_basic(t *testing.T) {
+
 	envVars := []string{
-		"TF_VAR_ad_domain_name",
-		"TF_VAR_ad_group_name",
-		"TF_VAR_ad_group_sam",
 		"TF_VAR_ad_group_container",
-		"TF_VAR_ad_group_scope",
-		"TF_VAR_ad_group_category",
-		"TF_VAR_ad_group_description",
 	}
+
+	container := os.Getenv("TF_VAR_ad_group_container")
+	groupName := testAccRandomName("tfacc-group")
+	sam := testAccRandomSAM()
+	resourceName := "windowsad_group.g"
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADGroupExists("ad_group.g", os.Getenv("TF_VAR_ad_group_sam"), false),
+			testAccResourceADGroupExists(resourceName, sam, false),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADGroupConfigBasic(os.Getenv("TF_VAR_ad_group_scope_global"), os.Getenv("TF_VAR_ad_group_category_security")),
+				Config: testAccResourceADGroupConfigRandom(groupName, sam, container, "global", "security", "Test group"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGroupExists("ad_group.g", os.Getenv("TF_VAR_ad_group_sam"), true),
+					testAccResourceADGroupExists(resourceName, sam, true),
 				),
 			},
 			{
-				ResourceName:      "ad_group.g",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -46,32 +47,33 @@ func TestAccResourceADGroup_basic(t *testing.T) {
 }
 
 func TestAccResourceADGroup_categories(t *testing.T) {
+
 	envVars := []string{
-		"TF_VAR_ad_domain_name",
-		"TF_VAR_ad_group_name",
-		"TF_VAR_ad_group_sam",
 		"TF_VAR_ad_group_container",
-		"TF_VAR_ad_group_scope",
-		"TF_VAR_ad_group_category",
-		"TF_VAR_ad_group_description",
 	}
+
+	container := os.Getenv("TF_VAR_ad_group_container")
+	groupName := testAccRandomName("tfacc-group")
+	sam := testAccRandomSAM()
+	resourceName := "windowsad_group.g"
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADGroupExists("ad_group.g", os.Getenv("TF_VAR_ad_group_sam"), false),
+			testAccResourceADGroupExists(resourceName, sam, false),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADGroupConfigBasic(os.Getenv("TF_VAR_ad_group_scope_global"), os.Getenv("TF_VAR_ad_group_category_security")),
+				Config: testAccResourceADGroupConfigRandom(groupName, sam, container, "global", "security", "Test group"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGroupExists("ad_group.g", os.Getenv("TF_VAR_ad_group_sam"), true),
+					testAccResourceADGroupExists(resourceName, sam, true),
 				),
 			},
 			{
-				Config: testAccResourceADGroupConfigBasic(os.Getenv("TF_VAR_ad_group_scope_global"), os.Getenv("TF_VAR_ad_group_category_distribution")),
+				Config: testAccResourceADGroupConfigRandom(groupName, sam, container, "global", "distribution", "Test group"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGroupExists("ad_group.g", os.Getenv("TF_VAR_ad_group_sam"), true),
+					testAccResourceADGroupExists(resourceName, sam, true),
 				),
 			},
 		},
@@ -79,63 +81,56 @@ func TestAccResourceADGroup_categories(t *testing.T) {
 }
 
 func TestAccResourceADGroup_scopes(t *testing.T) {
+
 	envVars := []string{
-		"TF_VAR_ad_domain_name",
-		"TF_VAR_ad_group_name",
-		"TF_VAR_ad_group_sam",
 		"TF_VAR_ad_group_container",
-		"TF_VAR_ad_group_scope",
-		"TF_VAR_ad_group_category",
-		"TF_VAR_ad_group_description",
 	}
 
+	container := os.Getenv("TF_VAR_ad_group_container")
+	groupName := testAccRandomName("tfacc-group")
+	sam := testAccRandomSAM()
+	resourceName := "windowsad_group.g"
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADGroupExists("ad_group.g", os.Getenv(""), false),
+			testAccResourceADGroupExists(resourceName, sam, false),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADGroupConfigBasic(os.Getenv("TF_VAR_ad_group_scope_domainlocal"), os.Getenv("TF_VAR_ad_group_category_security")),
+				Config: testAccResourceADGroupConfigRandom(groupName, sam, container, "domainlocal", "security", "Test group"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGroupExists("ad_group.g", os.Getenv("TF_VAR_ad_group_sam"), true),
+					testAccResourceADGroupExists(resourceName, sam, true),
 				),
 			},
 			{
-				Config: testAccResourceADGroupConfigBasic(os.Getenv("TF_VAR_ad_group_scope_universal"), os.Getenv("TF_VAR_ad_group_category_security")),
+				Config: testAccResourceADGroupConfigRandom(groupName, sam, container, "universal", "security", "Test group"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGroupExists("ad_group.g", os.Getenv("TF_VAR_ad_group_sam"), true),
+					testAccResourceADGroupExists(resourceName, sam, true),
 				),
 			},
 			{
-				Config: testAccResourceADGroupConfigBasic(os.Getenv("TF_VAR_ad_group_scope_global"), os.Getenv("TF_VAR_ad_group_category_security")),
+				Config: testAccResourceADGroupConfigRandom(groupName, sam, container, "global", "security", "Test group"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGroupExists("ad_group.g", os.Getenv("TF_VAR_ad_group_sam"), true),
+					testAccResourceADGroupExists(resourceName, sam, true),
 				),
 			},
 		},
 	})
 }
 
-func testAccResourceADGroupConfigBasic(scope, gtype string) string {
+func testAccResourceADGroupConfigRandom(name, sam, container, scope, category, description string) string {
 	return fmt.Sprintf(`
-	variable "ad_group_name" {}
-	variable "ad_group_sam"{}
-	variable "scope" { default = %q }
-	variable "category" { default = %q }
-	variable "ad_group_container"{}
-	variable "ad_group_description"{}
-
-	resource "ad_group" "g" {
-		name = var.ad_group_name
-		sam_account_name = var.ad_group_sam
-		scope = var.scope
-		category = var.category
-		container = var.ad_group_container
-		description = var.ad_group_description
- 	}
-`, scope, gtype)
+resource "windowsad_group" "g" {
+  name             = %[1]q
+  sam_account_name = %[2]q
+  container        = %[3]q
+  scope            = %[4]q
+  category         = %[5]q
+  description      = %[6]q
+}
+`, name, sam, container, scope, category, description)
 }
 
 func testAccResourceADGroupExists(name, groupSAM string, expected bool) resource.TestCheckFunc {

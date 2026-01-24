@@ -26,5 +26,9 @@ jobs:
           go-version: ${{ steps.go-version.outputs.content }}
       - name: Go mod verify
         run: go mod verify
+      - name: Update vendor dependencies
+        run: |
+          go mod download
+          go mod vendor
       - name: Run unit tests
         run: make test

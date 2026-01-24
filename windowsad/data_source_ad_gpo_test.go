@@ -1,23 +1,30 @@
 package windowsad
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDatasourceADGPO_basic(t *testing.T) {
-	envVars := []string{"TF_VAR_ad_domain_name", "TF_VAR_ad_gpo_name"}
+
+	envVars := []string{"TF_VAR_ad_domain_name"}
+
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	gpoName := testAccRandomName("tfacc-gpo")
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDatasourceADGPOConfigBasic(),
+				Config: testAccDatasourceADGPOConfigRandom(gpoName, domain),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
-						"data.ad_gpo.g", "id",
-						"ad_gpo.gpo", "id",
+						"data.windowsad_gpo.g", "id",
+						"windowsad_gpo.gpo", "id",
 					),
 				),
 			},
@@ -25,19 +32,52 @@ func TestAccDatasourceADGPO_basic(t *testing.T) {
 	})
 }
 
-func testAccDatasourceADGPOConfigBasic() string {
-	return `
+func testAccDatasourceADGPOConfigRandom(name, domain string) string {
+	return fmt.Sprintf(`
+resource "windowsad_gpo" "gpo" {
+  name   = %[1]q
+  domain = %[2]q
+}
 
-	variable "ad_domain_name" {}
-	variable "ad_gpo_name" {}
+data "windowsad_gpo" "g" {
+  name = windowsad_gpo.gpo.name
+}
+`, name, domain)
+}
 
-	resource "ad_gpo" "gpo" {
-		name        = var.ad_gpo_name
-		domain      = var.ad_domain_name
-	}
+func TestAccDatasourceADGPO_byGUID(t *testing.T) {
 
-	data "ad_gpo" "g" {
-	    name = ad_gpo.gpo.name
-	}
-	`
+	envVars := []string{"TF_VAR_ad_domain_name"}
+
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	gpoName := testAccRandomName("tfacc-gpo")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDatasourceADGPOConfigByGUID(gpoName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(
+						"data.windowsad_gpo.g", "name",
+						"windowsad_gpo.gpo", "name",
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDatasourceADGPOConfigByGUID(name, domain string) string {
+	return fmt.Sprintf(`
+resource "windowsad_gpo" "gpo" {
+  name   = %[1]q
+  domain = %[2]q
+}
+
+data "windowsad_gpo" "g" {
+  guid = windowsad_gpo.gpo.id
+}
+`, name, domain)
 }

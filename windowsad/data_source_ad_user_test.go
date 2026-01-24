@@ -1,29 +1,37 @@
 package windowsad
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceADUser_basic(t *testing.T) {
+
 	envVars := []string{
-		"TF_VAR_ad_user_principal_name",
-		"TF_VAR_ad_user_password",
-		"TF_VAR_ad_user_sam",
-		"TF_VAR_ad_user_display_name",
 		"TF_VAR_ad_user_container",
+		"TF_VAR_ad_domain_name",
 	}
+
+	container := os.Getenv("TF_VAR_ad_user_container")
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	sam := testAccRandomSAM()
+	displayName := testAccRandomName("tfacc-user")
+	password := testAccRandomPassword()
+	principalName := testAccRandomPrincipalName(domain)
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceADUserBasic(),
+				Config: testAccDataSourceADUserRandom(sam, displayName, password, principalName, container),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(
-						"data.ad_user.d", "id",
-						"ad_user.a", "id",
+						"data.windowsad_user.d", "id",
+						"windowsad_user.a", "id",
 					),
 				),
 			},
@@ -31,24 +39,65 @@ func TestAccDataSourceADUser_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceADUserBasic() string {
-	return `
-	variable "ad_user_principal_name" {}
-	variable "ad_user_password" {}
-	variable "ad_user_sam" {}
-	variable "ad_user_display_name" {}
-	variable "ad_user_container" {}
+func testAccDataSourceADUserRandom(sam, displayName, password, principalName, container string) string {
+	return fmt.Sprintf(`
+resource "windowsad_user" "a" {
+  sam_account_name = %[1]q
+  display_name     = %[2]q
+  initial_password = %[3]q
+  principal_name   = %[4]q
+  container        = %[5]q
+}
 
-	resource "ad_user" "a" {
-		principal_name = var.ad_user_principal_name
-		sam_account_name = var.ad_user_sam
-		initial_password = var.ad_user_password
-		display_name = var.ad_user_display_name
-		container = var.ad_user_container
+data "windowsad_user" "d" {
+  user_id = windowsad_user.a.id
+}
+`, sam, displayName, password, principalName, container)
+}
+
+func TestAccDataSourceADUser_bySAM(t *testing.T) {
+
+	envVars := []string{
+		"TF_VAR_ad_user_container",
+		"TF_VAR_ad_domain_name",
 	}
-	 
-	 data "ad_user" "d" {
-		 user_id = ad_user.a.id
-	 }
-`
+
+	container := os.Getenv("TF_VAR_ad_user_container")
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	sam := testAccRandomSAM()
+	displayName := testAccRandomName("tfacc-user")
+	password := testAccRandomPassword()
+	principalName := testAccRandomPrincipalName(domain)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceADUserBySAM(sam, displayName, password, principalName, container),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(
+						"data.windowsad_user.d", "sam_account_name",
+						"windowsad_user.a", "sam_account_name",
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDataSourceADUserBySAM(sam, displayName, password, principalName, container string) string {
+	return fmt.Sprintf(`
+resource "windowsad_user" "a" {
+  sam_account_name = %[1]q
+  display_name     = %[2]q
+  initial_password = %[3]q
+  principal_name   = %[4]q
+  container        = %[5]q
+}
+
+data "windowsad_user" "d" {
+  user_id = windowsad_user.a.sam_account_name
+}
+`, sam, displayName, password, principalName, container)
 }

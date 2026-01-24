@@ -42,11 +42,27 @@ Review the [docs](docs/) folder to understand which configuration options are av
 
 ## Migrating from hashicorp/ad
 
-If you're migrating from the archived HashiCorp provider:
+This provider supports both `windowsad_*` and legacy `ad_*` resource names, making migration seamless.
 
-1. Update your provider source from `hashicorp/ad` to `JohanVanosmaelAcerta/windowsad`
-2. Rename all resources from `ad_*` to `windowsad_*`
-3. Update environment variables from `AD_*` to `WINDOWSAD_*`
+**Quick migration** (existing `ad_*` resources continue to work):
+
+1. Update provider source from `hashicorp/ad` to `JohanVanosmael/windowsad`
+2. Rename provider block from `ad` to `windowsad`
+3. Migrate Terraform state (re-import or edit state file)
+4. Run `terraform plan` — should show no changes
+
+```hcl
+# Your existing ad_user, ad_group, etc. resources work without modification!
+resource "ad_user" "example" {
+  display_name     = "John Doe"
+  sam_account_name = "jdoe"
+  # ...
+}
+```
+
+For detailed instructions, see the **[Migration Guide](docs/guides/migration-from-hashicorp-ad.md)**.
+
+> **Note:** The `ad_*` prefix is deprecated and will be removed in a future major version. Use `windowsad_*` for new configurations.
 
 ## Community Bug Fixes Included
 
@@ -59,6 +75,52 @@ This fork includes fixes from the following upstream PRs:
 - #128: Fix cannot_change_password state detection
 - #124: Fix multiple AD user creation
 - #197: Fix password special character escaping
+
+## Development
+
+### Running Acceptance Tests
+
+Acceptance tests require a Windows runner with access to an Active Directory environment. The runner machine requires specific configuration:
+
+#### Windows Runner Configuration
+
+1. **Windows Defender Exclusions** - Newly compiled Go test binaries are blocked by real-time scanning:
+
+```powershell
+# Run as Administrator on the runner machine
+Add-MpPreference -ExclusionPath "D:\actions-runner-terraform"
+Add-MpPreference -ExclusionPath "C:\Users\s-gmsa-gha$\go"
+Add-MpPreference -ExclusionPath "C:\Users\s-gmsa-gha$\AppData\Local\go-build"
+Add-MpPreference -ExclusionPath "C:\Users\s-gmsa-gha$\AppData\Local\Temp"
+```
+
+2. **Windows Developer Mode** - Terraform plugin testing framework creates symlinks, which requires the `SeCreateSymbolicLinkPrivilege`:
+
+```powershell
+# Run as Administrator on the runner machine
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+```
+
+Or enable via: Settings → For developers → Developer Mode
+
+3. **Reboot** the runner after applying these changes.
+
+#### Environment Variables
+
+The acceptance tests require these environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `WINDOWSAD_HOSTNAME` | Domain controller hostname for WinRM |
+| `WINDOWSAD_USER` | AD admin username (**without** `@realm` suffix) |
+| `WINDOWSAD_PASSWORD` | AD admin password |
+| `WINDOWSAD_KRB_REALM` | Kerberos realm (uppercase, e.g., `EXAMPLE.COM`) |
+| `TF_VAR_ad_domain_name` | AD domain name (e.g., `example.com`) |
+| `TF_VAR_ad_user_container` | OU for test users |
+| `TF_VAR_ad_group_container` | OU for test groups |
+| `TF_VAR_ad_computer_container` | OU for test computers |
+
+> **Important:** For Kerberos authentication, `WINDOWSAD_USER` must be just the username (e.g., `svc-terraform`), not `svc-terraform@EXAMPLE.COM`. The realm is passed separately via `WINDOWSAD_KRB_REALM`.
 
 ## Contributing
 

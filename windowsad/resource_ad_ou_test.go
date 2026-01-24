@@ -14,41 +14,43 @@ import (
 )
 
 func TestAccResourceADOU_basic(t *testing.T) {
+
 	envVars := []string{
-		"TF_VAR_ad_ou_name",
-		"TF_VAR_ad_ou_description",
-		"TF_VAR_ad_ou_path",
-		"TF_VAR_ad_ou_protected",
+		"TF_VAR_ad_user_container",
 	}
 
+	path := os.Getenv("TF_VAR_ad_user_container")
+	ouName := testAccRandomName("tfacc-ou")
+	renamedOuName := ouName + "-renamed"
+	resourceName := "windowsad_ou.o"
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t, envVars) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testAccResourceADOUExists("ad_ou.o", "", false),
+			testAccResourceADOUExists(resourceName, "", false),
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADOUConfigBasic("", true),
+				Config: testAccResourceADOUConfigRandom(ouName, path, "Test OU", true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADOUExists("ad_ou.o", os.Getenv("TF_VAR_ad_ou_name"), true),
+					testAccResourceADOUExists(resourceName, ouName, true),
 				),
 			},
 			{
-				Config: testAccResourceADOUConfigBasic("-renamed", true),
+				Config: testAccResourceADOUConfigRandom(renamedOuName, path, "Test OU", true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADOUExists("ad_ou.o", fmt.Sprintf("%s-renamed",
-						os.Getenv("TF_VAR_ad_ou_name")), true),
+					testAccResourceADOUExists(resourceName, renamedOuName, true),
 				),
 			},
 			{
-				Config: testAccResourceADOUConfigBasic("", false),
+				Config: testAccResourceADOUConfigRandom(ouName, path, "Test OU", false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADOUExists("ad_ou.o", os.Getenv("TF_VAR_ad_ou_name"), true),
+					testAccResourceADOUExists(resourceName, ouName, true),
 				),
 			},
 			{
-				ResourceName:      "ad_ou.o",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -56,20 +58,50 @@ func TestAccResourceADOU_basic(t *testing.T) {
 	})
 }
 
-func testAccResourceADOUConfigBasic(nameSuffix string, protection bool) string {
-	return fmt.Sprintf(`
-variable ad_ou_name {}
-variable ad_ou_path {}
-variable ad_ou_description {}
-variable protected { default = %t}
+func TestAccResourceADOU_updateDescription(t *testing.T) {
 
-resource "ad_ou" "o" { 
-    name = "${var.ad_ou_name}%s"
-    path = var.ad_ou_path
-    description = var.ad_ou_description
-    protected = var.protected
+	envVars := []string{
+		"TF_VAR_ad_user_container",
+	}
+
+	path := os.Getenv("TF_VAR_ad_user_container")
+	ouName := testAccRandomName("tfacc-ou")
+	resourceName := "windowsad_ou.o"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy: resource.ComposeTestCheckFunc(
+			testAccResourceADOUExists(resourceName, "", false),
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceADOUConfigRandom(ouName, path, "Initial description", false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccResourceADOUExists(resourceName, ouName, true),
+					resource.TestCheckResourceAttr(resourceName, "description", "Initial description"),
+				),
+			},
+			{
+				Config: testAccResourceADOUConfigRandom(ouName, path, "Updated description", false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccResourceADOUExists(resourceName, ouName, true),
+					resource.TestCheckResourceAttr(resourceName, "description", "Updated description"),
+				),
+			},
+		},
+	})
 }
-`, protection, nameSuffix)
+
+func testAccResourceADOUConfigRandom(name, path, description string, protected bool) string {
+	return fmt.Sprintf(`
+resource "windowsad_ou" "o" {
+  name        = %[1]q
+  path        = %[2]q
+  description = %[3]q
+  protected   = %[4]t
+}
+`, name, path, description, protected)
 }
 
 func testAccResourceADOUExists(resource, name string, expected bool) resource.TestCheckFunc {

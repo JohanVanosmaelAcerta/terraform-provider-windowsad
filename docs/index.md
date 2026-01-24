@@ -1,17 +1,23 @@
 ---
 layout: ""
-page_title: "Provider: AD (Active Directory)"
+page_title: "Provider: Windows AD (Active Directory)"
 description: |-
-  The AD (Active Directory) provider provides resources to interact with an AD domain controller .
+  The Windows AD provider provides resources to interact with an AD domain controller.
 ---
 
-# AD (Active Directory) Provider
+# Windows AD (Active Directory) Provider
 
-The AD (Active Directory) provider provides resources to interact with an AD domain controller.
+The Windows AD provider provides resources to interact with an AD domain controller.
+
+This is a maintained fork of the archived [HashiCorp terraform-provider-ad](https://github.com/hashicorp/terraform-provider-ad).
 
 Requirements:
  - Windows Server 2012R2 or greater.
  - WinRM enabled.
+
+## Migration from hashicorp/ad
+
+This provider supports both `windowsad_*` (recommended) and legacy `ad_*` resource names for easy migration. See the [Migration Guide](guides/migration-from-hashicorp-ad.md) for details.
 
 ## Note about Kerberos Authentication
 
@@ -44,9 +50,9 @@ Kerberos as its authentication when `krb_realm` is set.
 ## Double hop Authentication
 
 Starting with version 0.4.3 it is possible to point the provider to a host other than a Domain Controller and perform
-all the management tasks through that host. Here is an example of The provider config:
+all the management tasks through that host. Here is an example of the provider config:
 ```
-provider "ad" {
+provider "windowsad" {
   winrm_hostname         = "10.0.0.1"
   winrm_username         = var.username
   winrm_password         = var.password
@@ -85,7 +91,7 @@ In this case krb5.conf would look like this:
  A few things to note:
     - Double Hop Authentication is only enabled when using https
     - Authentication between management host and DC is done via Kerberos
-    - The [AD Powershell module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=winserver2012r2-ps) as well as the [Group Policy Powersehll Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps) is expected to be installed
+    - The [AD Powershell module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=winserver2012r2-ps) as well as the [Group Policy Powershell Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps) is expected to be installed
       on the server before running the provider.
 
 
@@ -102,7 +108,7 @@ Note: it will set to local only `if all 3 parameters are set to null`
 
 ### Example
 ```terraform
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = ""
   winrm_username = ""
   winrm_password = ""
@@ -117,14 +123,14 @@ variable "username" { default = "user" }
 variable "password" { default = "password" }
 
 // remote using Basic authentication
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
 }
 
 // remote using NTLM authentication
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
@@ -132,7 +138,7 @@ provider "ad" {
 }
 
 // remote using NTLM authentication and HTTPS
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
@@ -143,7 +149,7 @@ provider "ad" {
 }
 
 // remote using Kerberos authentication
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
@@ -151,7 +157,7 @@ provider "ad" {
 }
 
 // remote using Kerberos authentication with krb5.conf file
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
@@ -159,7 +165,7 @@ provider "ad" {
 }
 
 // local (windows only)
-provider "ad" {
+provider "windowsad" {
   winrm_hostname = ""
   winrm_username = ""
   winrm_password = ""
@@ -171,19 +177,19 @@ provider "ad" {
 
 ### Required
 
-- `winrm_hostname` (String) The hostname of the server we will use to run powershell scripts over WinRM. (Environment variable: AD_HOSTNAME)
-- `winrm_password` (String) The password used to authenticate to the server's WinRM service. (Environment variable: AD_PASSWORD)
-- `winrm_username` (String) The username used to authenticate to the server's WinRM service. (Environment variable: AD_USER)
+- `winrm_hostname` (String) The hostname of the server we will use to run powershell scripts over WinRM. (Environment variable: WINDOWSAD_HOSTNAME)
+- `winrm_password` (String) The password used to authenticate to the server's WinRM service. (Environment variable: WINDOWSAD_PASSWORD)
+- `winrm_username` (String) The username used to authenticate to the server's WinRM service. (Environment variable: WINDOWSAD_USER)
 
 ### Optional
 
-- `domain_controller` (String) Use a specific domain controller. (default: none, environment variable: AD_DC)
-- `krb_conf` (String) Path to kerberos configuration file. (default: none, environment variable: AD_KRB_CONF)
+- `domain_controller` (String) Use a specific domain controller. (default: none, environment variable: WINDOWSAD_DC)
+- `krb_conf` (String) Path to kerberos configuration file. (default: none, environment variable: WINDOWSAD_KRB_CONF)
 - `krb_keytab` (String) Path to a keytab file to be used instead of a password
-- `krb_realm` (String) The name of the kerberos realm (domain) we will use for authentication. (default: "", environment variable: AD_KRB_REALM)
-- `krb_spn` (String) Alternative Service Principal Name. (default: none, environment variable: AD_KRB_SPN)
-- `winrm_insecure` (Boolean) Trust unknown certificates. (default: false, environment variable: AD_WINRM_INSECURE)
-- `winrm_pass_credentials` (Boolean) Pass credentials in WinRM session to create a System.Management.Automation.PSCredential. (default: false, environment variable: AD_WINRM_PASS_CREDENTIALS)
-- `winrm_port` (Number) The port WinRM is listening for connections. (default: 5985, environment variable: AD_PORT)
-- `winrm_proto` (String) The WinRM protocol we will use. (default: http, environment variable: AD_PROTO)
-- `winrm_use_ntlm` (Boolean) Use NTLM authentication. (default: false, environment variable: AD_WINRM_USE_NTLM)
+- `krb_realm` (String) The name of the kerberos realm (domain) we will use for authentication. (default: "", environment variable: WINDOWSAD_KRB_REALM)
+- `krb_spn` (String) Alternative Service Principal Name. (default: none, environment variable: WINDOWSAD_KRB_SPN)
+- `winrm_insecure` (Boolean) Trust unknown certificates. (default: false, environment variable: WINDOWSAD_WINRM_INSECURE)
+- `winrm_pass_credentials` (Boolean) Pass credentials in WinRM session to create a System.Management.Automation.PSCredential. (default: false, environment variable: WINDOWSAD_WINRM_PASS_CREDENTIALS)
+- `winrm_port` (Number) The port WinRM is listening for connections. (default: 5985, environment variable: WINDOWSAD_PORT)
+- `winrm_proto` (String) The WinRM protocol we will use. (default: http, environment variable: WINDOWSAD_PROTO)
+- `winrm_use_ntlm` (Boolean) Use NTLM authentication. (default: false, environment variable: WINDOWSAD_WINRM_USE_NTLM)

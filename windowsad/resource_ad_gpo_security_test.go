@@ -2,6 +2,7 @@ package windowsad
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -13,23 +14,28 @@ import (
 )
 
 func TestAccResourceADGPOSecurity_basic(t *testing.T) {
+
 	envVars := []string{
-		"TF_VAR_ad_gpo_name",
-		"TF_VAR_ad_gpo_domain",
+		"TF_VAR_ad_domain_name",
 	}
+
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	gpoName := testAccRandomName("tfacc-gposec")
+	resourceName := "windowsad_gpo_security.gpo_sec"
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t, envVars) },
-		Providers:    testAccProviders,
-		CheckDestroy: resource.ComposeTestCheckFunc(testAccResourceADGPOSecurityExists("ad_gpo_security.gpo_sec", false)),
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             resource.ComposeTestCheckFunc(testAccResourceADGPOSecurityExists(resourceName, false)),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADGPOSecurityConfigBasic(),
+				Config: testAccResourceADGPOSecurityConfigRandom(gpoName, domain),
 				Check: resource.ComposeTestCheckFunc(
-					testAccResourceADGPOSecurityExists("ad_gpo_security.gpo_sec", true),
+					testAccResourceADGPOSecurityExists(resourceName, true),
 				),
 			},
 			{
-				ResourceName:      "ad_gpo_security.gpo_sec",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -71,21 +77,74 @@ func testAccResourceADGPOSecurityExists(resourceName string, desired bool) resou
 	}
 }
 
-func testAccResourceADGPOSecurityConfigBasic() string {
-	return `
-variable "ad_gpo_domain" {}
-variable "ad_gpo_name" {}
+func TestAccResourceADGPOSecurity_update(t *testing.T) {
 
-resource "ad_gpo" "gpo" {
-    name        = var.ad_gpo_name
-    domain      = var.ad_gpo_domain
+	envVars := []string{
+		"TF_VAR_ad_domain_name",
+	}
+
+	domain := os.Getenv("TF_VAR_ad_domain_name")
+	gpoName := testAccRandomName("tfacc-gposec")
+	resourceName := "windowsad_gpo_security.gpo_sec"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t, envVars) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             resource.ComposeTestCheckFunc(testAccResourceADGPOSecurityExists(resourceName, false)),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceADGPOSecurityConfigRandom(gpoName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccResourceADGPOSecurityExists(resourceName, true),
+					resource.TestCheckResourceAttr(resourceName, "password_policies.0.minimum_password_length", "3"),
+				),
+			},
+			{
+				Config: testAccResourceADGPOSecurityConfigUpdated(gpoName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccResourceADGPOSecurityExists(resourceName, true),
+					resource.TestCheckResourceAttr(resourceName, "password_policies.0.minimum_password_length", "8"),
+					resource.TestCheckResourceAttr(resourceName, "password_policies.0.maximum_password_age", "90"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-resource "ad_gpo_security" "gpo_sec" {
-    gpo_container = ad_gpo.gpo.id
-   password_policies {
-        minimum_password_length = 3
-    }
+func testAccResourceADGPOSecurityConfigRandom(gpoName, domain string) string {
+	return fmt.Sprintf(`
+resource "windowsad_gpo" "gpo" {
+  name   = %[1]q
+  domain = %[2]q
 }
-`
+
+resource "windowsad_gpo_security" "gpo_sec" {
+  gpo_container = windowsad_gpo.gpo.id
+  password_policies {
+    minimum_password_length = 3
+  }
+}
+`, gpoName, domain)
+}
+
+func testAccResourceADGPOSecurityConfigUpdated(gpoName, domain string) string {
+	return fmt.Sprintf(`
+resource "windowsad_gpo" "gpo" {
+  name   = %[1]q
+  domain = %[2]q
+}
+
+resource "windowsad_gpo_security" "gpo_sec" {
+  gpo_container = windowsad_gpo.gpo.id
+  password_policies {
+    minimum_password_length = 8
+    maximum_password_age    = "90"
+  }
+}
+`, gpoName, domain)
 }

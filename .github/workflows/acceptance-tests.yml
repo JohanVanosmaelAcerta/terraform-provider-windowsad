@@ -1,0 +1,169 @@
+name: Acceptance Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  acceptance-tests:
+    name: Acceptance Tests
+    # Skip for PRs from forks - they don't have access to secrets and
+    # we don't want to expose internal infrastructure in logs
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 60
+    env:
+      TF_ACC: 1
+      WINDOWSAD_HOSTNAME: ${{ secrets.AD_HOSTNAME }}
+      WINDOWSAD_USER: ${{ secrets.AD_USERNAME }}
+      WINDOWSAD_PASSWORD: ${{ secrets.AD_PASSWORD }}
+      WINDOWSAD_KRB_REALM: ${{ secrets.AD_KRB_REALM }}
+      WINDOWSAD_KRB_SPN: ${{ secrets.AD_KRB_SPN }}
+      WINDOWSAD_DC: ${{ secrets.AD_DC }}
+      # Use HTTPS with credential passing to ensure AD cmdlets have proper auth
+      WINDOWSAD_PROTO: https
+      WINDOWSAD_PORT: 5986
+      WINDOWSAD_WINRM_INSECURE: "true"
+      WINDOWSAD_WINRM_PASS_CREDENTIALS: "true"
+      # Kerberos configuration file path (created in setup step)
+      WINDOWSAD_KRB_CONF: ${{ github.workspace }}\krb5.conf
+      TF_VAR_ad_domain_name: ${{ secrets.AD_DOMAIN_NAME }}
+      TF_VAR_ad_user_container: ${{ secrets.AD_USER_CONTAINER }}
+      TF_VAR_ad_group_container: ${{ secrets.AD_GROUP_CONTAINER }}
+      TF_VAR_ad_computer_container: ${{ secrets.AD_COMPUTER_CONTAINER }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create Kerberos configuration
+        shell: pwsh
+        run: |
+          # Create krb5.conf for gokrb5 library to find the KDC
+          # The DC secret should be the fully qualified domain controller hostname
+          $realm = $env:WINDOWSAD_KRB_REALM
+          $dc = $env:WINDOWSAD_DC
+          $domain = $realm.ToLower()
+          
+          $krb5Config = @"
+          [libdefaults]
+             default_realm = $realm
+             dns_lookup_realm = false
+             dns_lookup_kdc = false
+
+          [realms]
+              $realm = {
+                  kdc     = $dc
+                  admin_server = $dc
+                  default_domain = $domain
+              }
+
+          [domain_realm]
+              .$domain = $realm
+              $domain = $realm
+          "@
+          
+          $krb5Config | Out-File -FilePath "${{ github.workspace }}\krb5.conf" -Encoding utf8
+          Write-Host "Created krb5.conf:"
+          Get-Content "${{ github.workspace }}\krb5.conf"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Cache Go build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\.cache\go-build
+            ~\go\pkg\mod
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/*.go', 'go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-build-
+
+      - name: Update vendor dependencies
+        run: |
+          # Vendor is in git, but ensure it's up to date with go.mod
+          go mod download
+          go mod vendor
+
+      - name: Pre-compile test binary
+        env:
+          GOCACHE: ${{ runner.temp }}\go-cache
+        run: |
+          # Ensure cache directory exists
+          New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
+          # Build test binary once, reuse for all tests
+          go test -c -o windowsad.test.exe ./windowsad
+          Write-Host "✓ Test binary compiled"
+
+      - name: Verify Kerberos authentication
+        shell: pwsh
+        run: |
+          # Fail fast if Kerberos auth doesn't work with the provided credentials
+          $secPass = ConvertTo-SecureString $env:WINDOWSAD_PASSWORD -AsPlainText -Force
+          $cred = New-Object System.Management.Automation.PSCredential($env:WINDOWSAD_USER, $secPass)
+          
+          try {
+            # Test authentication by querying AD with explicit credentials
+            # Use WINDOWSAD_DC (domain controller) for AD queries, not WINDOWSAD_HOSTNAME (WinRM server)
+            $dc = Get-ADDomainController -Server $env:WINDOWSAD_DC -Credential $cred -ErrorAction Stop
+            Write-Host "✓ Kerberos authentication successful"
+            Write-Host "  Connected to DC: $($dc.HostName)"
+          } catch {
+            Write-Host "✗ Kerberos authentication FAILED"
+            Write-Host "  Error: $_"
+            Write-Host ""
+            Write-Host "Troubleshooting hints:"
+            Write-Host "  - Verify AD_USERNAME secret is in format: user@REALM or DOMAIN\user"
+            Write-Host "  - Verify AD_PASSWORD secret is correct"
+            Write-Host "  - Verify AD_KRB_REALM matches the Kerberos realm (usually uppercase domain)"
+            exit 1
+          }
+          
+          # Warn if username format may cause issues with Go gokrb5 library
+          # The provider passes username and realm separately, so username should NOT contain @REALM
+          $user = $env:WINDOWSAD_USER
+          if ($user -match '@') {
+            Write-Host ""
+            Write-Host "⚠ WARNING: Username contains '@' character"
+            Write-Host "  The Go gokrb5 library expects username WITHOUT realm suffix"
+            Write-Host "  Example: 'svc-terraform' not 'svc-terraform@EXAMPLE.COM'"
+            Write-Host "  The realm is passed separately via WINDOWSAD_KRB_REALM"
+            Write-Host ""
+            Write-Host "  Current: WINDOWSAD_USER contains '@'"
+            Write-Host "  Current: WINDOWSAD_KRB_REALM = $($env:WINDOWSAD_KRB_REALM)"
+            Write-Host ""
+            Write-Host "  Please update AD_USERNAME secret to just the username (no @domain)"
+            exit 1
+          }
+
+      - name: Clean Terraform state
+        shell: pwsh
+        run: |
+          # Clean up any leftover Terraform state from previous runs
+          Get-ChildItem -Path $env:TEMP -Filter "plugintest*" -Directory -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+          Get-ChildItem -Path $env:TEMP -Filter ".terraform*" -File -ErrorAction SilentlyContinue | Remove-Item -Force
+          Write-Host "✓ Cleaned Terraform temp files"
+
+      - name: Run acceptance tests
+        env:
+          # Use runner temp directory (no spaces in path) to avoid cache issues
+          GOCACHE: ${{ runner.temp }}\go-cache
+          GOTMPDIR: ${{ runner.temp }}\go-tmp
+          # Enable Terraform and provider debug logging
+          TF_LOG: DEBUG
+          TF_LOG_PROVIDER: DEBUG
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:GOTMPDIR | Out-Null
+          Write-Host "=== Starting acceptance tests at $(Get-Date) ==="
+          Write-Host "TF_ACC=$env:TF_ACC"
+          Write-Host "WINDOWSAD_HOSTNAME=$env:WINDOWSAD_HOSTNAME"
+          # Run tests with go test (uses cached build artifacts)
+          go test ./windowsad -v -count=1 -parallel=1 -timeout=45m -run "TestAccDataSourceADComputer_basic" 2>&1 | ForEach-Object { "[$(Get-Date -Format 'HH:mm:ss')] $_" }
