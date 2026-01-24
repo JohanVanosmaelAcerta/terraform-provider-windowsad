@@ -13,41 +13,51 @@ This is a maintained fork of the archived [HashiCorp terraform-provider-ad](http
 
 Requirements:
  - Windows Server 2012R2 or greater.
- - WinRM enabled.
+ - WinRM enabled with HTTPS listener (recommended).
+ - Kerberos authentication configured (recommended).
+
+## Security Defaults (v0.1.0+)
+
+This provider defaults to secure settings:
+
+| Setting | Default | Notes |
+|---------|---------|-------|
+| `winrm_proto` | `https` | HTTP is deprecated |
+| `winrm_port` | `5986` | HTTPS port |
+| Authentication | Kerberos | NTLM is deprecated |
+
+### Deprecated Features
+
+| Feature | Status | Removal |
+|---------|--------|---------|
+| `winrm_use_ntlm` | ⚠️ Deprecated | v0.2.0 |
+| `winrm_proto = "http"` | ⚠️ Deprecated | v0.2.0 |
+
+See the [Kerberos Authentication Guide](guides/kerberos-authentication.md) for secure configuration.
 
 ## Migration from hashicorp/ad
 
 This provider supports both `windowsad_*` (recommended) and legacy `ad_*` resource names for easy migration. See the [Migration Guide](guides/migration-from-hashicorp-ad.md) for details.
 
-## Note about Kerberos Authentication
+## Kerberos Authentication (Recommended)
 
-Starting with version 0.4.0, this provider supports Kerberos Authentication for WinRM connections.
-The underlying library used for Kerberos authentication supports setting its configuration by parsing
-a configuration file as specified in this [page](https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html).
-If a configuration file is not supplied then we will use the equivalent of the following config:
+Kerberos is the recommended authentication method. Set `krb_realm` to enable it:
 
-```
-[libdefaults]
-   default_realm = YOURDOMAIN.COM
-   dns_lookup_realm = false
-   dns_lookup_kdc = false
-
-[realms]
-	YOURDOMAIN.COM = {
-        kdc 	= 	192.168.1.122
-        admin_server = 192.168.1.122
-        default_domain = YOURDOMAIN.COM
-	}
-
-[domain_realm]
-	yourdomain.com = YOURDOMAIN.COM
+```hcl
+provider "windowsad" {
+  winrm_hostname = "dc01.yourdomain.com"
+  winrm_username = "admin@YOURDOMAIN.COM"
+  winrm_password = var.password
+  krb_realm      = "YOURDOMAIN.COM"
+  krb_conf       = "/etc/krb5.conf"  # Optional: custom krb5.conf
+}
 ```
 
-where `YOURDOMAIN.COM` is the value of the `krb_realm` setting, and 192.168.1.122 is the value of `winrm_hostname`.
-`Basic` remains the default authentication method, although this may change in the future. The provider will use
-Kerberos as its authentication when `krb_realm` is set.
+If no `krb_conf` is supplied, the provider generates a minimal configuration using `krb_realm` and `winrm_hostname`.
 
-## Double hop Authentication
+For detailed setup instructions, see the [Kerberos Authentication Guide](guides/kerberos-authentication.md).
+
+## Double-Hop Authentication
 
 Starting with version 0.4.3 it is possible to point the provider to a host other than a Domain Controller and perform
 all the management tasks through that host. Here is an example of the provider config:
@@ -118,58 +128,57 @@ provider "windowsad" {
  ## Example Usage
 
 ```terraform
-variable "hostname" { default = "ad.yourdomain.com" }
-variable "username" { default = "user" }
+variable "hostname" { default = "dc01.yourdomain.com" }
+variable "username" { default = "admin@YOURDOMAIN.COM" }
 variable "password" { default = "password" }
 
-// remote using Basic authentication
-provider "windowsad" {
-  winrm_hostname = var.hostname
-  winrm_username = var.username
-  winrm_password = var.password
-}
-
-// remote using NTLM authentication
-provider "windowsad" {
-  winrm_hostname = var.hostname
-  winrm_username = var.username
-  winrm_password = var.password
-  winrm_use_ntlm = true
-}
-
-// remote using NTLM authentication and HTTPS
-provider "windowsad" {
-  winrm_hostname = var.hostname
-  winrm_username = var.username
-  winrm_password = var.password
-  winrm_use_ntlm = true
-  winrm_port     = 5986
-  winrm_proto    = "https"
-  winrm_insecure = true
-}
-
-// remote using Kerberos authentication
+// Recommended: Kerberos authentication with HTTPS (default)
 provider "windowsad" {
   winrm_hostname = var.hostname
   winrm_username = var.username
   winrm_password = var.password
   krb_realm      = "YOURDOMAIN.COM"
+  krb_conf       = "/etc/krb5.conf"
+  winrm_insecure = true  # Set false with valid certificates
 }
 
-// remote using Kerberos authentication with krb5.conf file
+// Kerberos with keytab (for CI/CD pipelines)
 provider "windowsad" {
   winrm_hostname = var.hostname
-  winrm_username = var.username
-  winrm_password = var.password
+  winrm_username = "terraform"
+  krb_realm      = "YOURDOMAIN.COM"
   krb_conf       = "/etc/krb5.conf"
+  krb_keytab     = "/path/to/terraform.keytab"
 }
 
-// local (windows only)
+// Double-hop: WinRM to management server, Kerberos to DC
+provider "windowsad" {
+  winrm_hostname         = "mgmt.yourdomain.com"
+  winrm_username         = var.username
+  winrm_password         = var.password
+  krb_realm              = "YOURDOMAIN.COM"
+  krb_conf               = "/etc/krb5.conf"
+  krb_spn                = "mgmt"
+  winrm_pass_credentials = true
+  domain_controller      = "dc01.yourdomain.com"
+}
+
+// Local execution (Windows only)
 provider "windowsad" {
   winrm_hostname = ""
   winrm_username = ""
   winrm_password = ""
 }
+
+// DEPRECATED: NTLM authentication (will be removed in v0.2.0)
+// provider "windowsad" {
+//   winrm_hostname = var.hostname
+//   winrm_username = var.username
+//   winrm_password = var.password
+//   winrm_use_ntlm = true  # Deprecated!
+//   winrm_port     = 5986
+//   winrm_proto    = "https"
+// }
 ```
 
 <!-- schema generated by tfplugindocs -->
@@ -190,6 +199,6 @@ provider "windowsad" {
 - `krb_spn` (String) Alternative Service Principal Name. (default: none, environment variable: WINDOWSAD_KRB_SPN)
 - `winrm_insecure` (Boolean) Trust unknown certificates. (default: false, environment variable: WINDOWSAD_WINRM_INSECURE)
 - `winrm_pass_credentials` (Boolean) Pass credentials in WinRM session to create a System.Management.Automation.PSCredential. (default: false, environment variable: WINDOWSAD_WINRM_PASS_CREDENTIALS)
-- `winrm_port` (Number) The port WinRM is listening for connections. (default: 5985, environment variable: WINDOWSAD_PORT)
-- `winrm_proto` (String) The WinRM protocol we will use. (default: http, environment variable: WINDOWSAD_PROTO)
-- `winrm_use_ntlm` (Boolean) Use NTLM authentication. (default: false, environment variable: WINDOWSAD_WINRM_USE_NTLM)
+- `winrm_port` (Number) The port WinRM is listening for connections. (default: 5986, environment variable: WINDOWSAD_PORT)
+- `winrm_proto` (String) The WinRM protocol we will use. (default: https, environment variable: WINDOWSAD_PROTO). Note: HTTP is deprecated.
+- `winrm_use_ntlm` (Boolean, Deprecated) Use NTLM authentication. NTLM is deprecated and will be removed in v0.2.0. Use Kerberos instead. (default: false, environment variable: WINDOWSAD_WINRM_USE_NTLM)
