@@ -156,9 +156,9 @@ jobs:
           # Use runner temp directory (no spaces in path) to avoid cache issues
           GOCACHE: ${{ runner.temp }}\go-cache
           GOTMPDIR: ${{ runner.temp }}\go-tmp
-          # Enable Terraform and provider debug logging
-          TF_LOG: DEBUG
-          TF_LOG_PROVIDER: DEBUG
+          # Only enable debug logging when troubleshooting (adds significant overhead)
+          # TF_LOG: DEBUG
+          # TF_LOG_PROVIDER: DEBUG
         run: |
           New-Item -ItemType Directory -Force -Path $env:GOCACHE | Out-Null
           New-Item -ItemType Directory -Force -Path $env:GOTMPDIR | Out-Null
