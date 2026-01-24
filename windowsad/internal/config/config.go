@@ -37,7 +37,6 @@ type Settings struct {
 	KrbConfig            string
 	KrbKeytab            string
 	KrbSpn               string
-	WinRMUseNTLM         bool
 	WinRMPassCredentials bool
 	DomainName           string
 	DomainController     string
@@ -56,7 +55,6 @@ func NewConfig(d *schema.ResourceData) (*Settings, error) {
 	krbConfig := d.Get("krb_conf").(string)
 	krbKeytab := d.Get("krb_keytab").(string)
 	krbSpn := d.Get("krb_spn").(string)
-	winRMUseNTLM := d.Get("winrm_use_ntlm").(bool)
 	winRMPassCredentials := d.Get("winrm_pass_credentials").(bool)
 	domainController := d.Get("domain_controller").(string)
 
@@ -72,7 +70,6 @@ func NewConfig(d *schema.ResourceData) (*Settings, error) {
 		KrbConfig:            krbConfig,
 		KrbKeytab:            krbKeytab,
 		KrbSpn:               krbSpn,
-		WinRMUseNTLM:         winRMUseNTLM,
 		WinRMPassCredentials: winRMPassCredentials,
 		DomainController:     domainController,
 	}
@@ -101,9 +98,6 @@ func GetWinRMConnection(settings *Settings) (*winrm.Client, error) {
 		winrmClient, err = winrm.NewClientWithParameters(endpoint, "", "", params)
 	} else {
 		params := winrm.DefaultParameters
-		if settings.WinRMUseNTLM {
-			params.TransportDecorator = func() winrm.Transporter { return &winrm.ClientNTLM{} }
-		}
 		winrmClient, err = winrm.NewClientWithParameters(endpoint, settings.WinRMUsername, settings.WinRMPassword, params)
 	}
 

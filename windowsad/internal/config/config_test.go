@@ -308,9 +308,6 @@ func TestSettingsDefaults(t *testing.T) {
 	if settings.WinRMInsecure != false {
 		t.Errorf("Default WinRMInsecure = %v, want false", settings.WinRMInsecure)
 	}
-	if settings.WinRMUseNTLM != false {
-		t.Errorf("Default WinRMUseNTLM = %v, want false", settings.WinRMUseNTLM)
-	}
 	if settings.WinRMPassCredentials != false {
 		t.Errorf("Default WinRMPassCredentials = %v, want false", settings.WinRMPassCredentials)
 	}

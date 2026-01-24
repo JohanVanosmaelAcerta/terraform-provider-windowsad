@@ -93,13 +93,6 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("WINDOWSAD_KRB_KEYTAB", ""),
 				Description: "Path to a keytab file to be used instead of a password",
 			},
-			"winrm_use_ntlm": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("WINDOWSAD_WINRM_USE_NTLM", false),
-				Description: "DEPRECATED: Use NTLM authentication. NTLM is insecure and will be removed in v0.2.0. Use Kerberos instead. (default: false, environment variable: WINDOWSAD_WINRM_USE_NTLM)",
-				Deprecated:  "NTLM authentication is insecure (vulnerable to relay attacks) and will be removed in v0.2.0. Configure Kerberos authentication using krb_realm instead.",
-			},
 			"winrm_pass_credentials": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -154,12 +147,6 @@ func Provider() *schema.Provider {
 }
 
 func initProviderConfig(d *schema.ResourceData) (interface{}, error) {
-	// Security warnings for deprecated authentication methods
-	if d.Get("winrm_use_ntlm").(bool) {
-		log.Println("[WARN] NTLM authentication is deprecated and will be removed in v0.2.0. " +
-			"NTLM is vulnerable to relay attacks. Please migrate to Kerberos authentication by setting krb_realm.")
-	}
-
 	proto := d.Get("winrm_proto").(string)
 	hostname := d.Get("winrm_hostname").(string)
 	if strings.ToLower(proto) == "http" && hostname != "localhost" && hostname != "127.0.0.1" {
@@ -169,9 +156,9 @@ func initProviderConfig(d *schema.ResourceData) (interface{}, error) {
 
 	// Warning for non-Windows platforms without Kerberos
 	krbRealm := d.Get("krb_realm").(string)
-	if runtime.GOOS != "windows" && krbRealm == "" && !d.Get("winrm_use_ntlm").(bool) {
+	if runtime.GOOS != "windows" && krbRealm == "" {
 		log.Println("[WARN] Running on non-Windows without krb_realm configured. " +
-			"Kerberos authentication is recommended for security. Basic authentication will be used as fallback.")
+			"Kerberos authentication is required for non-Windows clients.")
 	}
 
 	cfg, err := config.NewConfig(d)
