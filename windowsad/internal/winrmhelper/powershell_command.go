@@ -26,10 +26,13 @@ type CreatePSCommandOpts struct {
 
 type PSCommand struct {
 	CreatePSCommandOpts
-	cmd string
+	cmd   string
+	stdin string
 }
 
 func NewPSCommand(cmds []string, opts CreatePSCommandOpts) *PSCommand {
+	credentialInput := ""
+
 	if opts.InvokeCommand && opts.PassCredentials {
 		invokeCmds := []string{"Invoke-Command -Authentication Kerberos"}
 		if opts.JSONOutput {
@@ -43,7 +46,8 @@ func NewPSCommand(cmds []string, opts CreatePSCommandOpts) *PSCommand {
 	if opts.PassCredentials {
 		if !opts.SkipCredPrefix {
 			cmdUsername := fmt.Sprintf("$User = \"%s\"\n", opts.Username)
-			cmdPassword := fmt.Sprintf("$Password = ConvertTo-SecureString -String \"%s\" -AsPlainText -Force\n", SanitiseString(opts.Password))
+			cmdPassword := "$Password = ConvertTo-SecureString -String ([Console]::In.ReadToEnd()) -AsPlainText -Force\n"
+			credentialInput = opts.Password
 			cmds = append([]string{"$Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $User, $Password\n"}, cmds...)
 			cmds = append([]string{cmdUsername}, cmds...)
 			cmds = append([]string{cmdPassword}, cmds...)
@@ -74,9 +78,11 @@ func NewPSCommand(cmds []string, opts CreatePSCommandOpts) *PSCommand {
 	}
 	log.Printf("[DEBUG] Constructing powershell command: %s ", logStr)
 
+	opts.Password = ""
 	res := PSCommand{
 		CreatePSCommandOpts: opts,
 		cmd:                 cmd,
+		stdin:               credentialInput,
 	}
 
 	return &res
@@ -100,13 +106,13 @@ func (p *PSCommand) Run(conf *config.ProviderConf) (*PSCommandResult, error) {
 
 	if !p.ExecLocally && conn != nil {
 		log.Printf("[DEBUG] Executing command on remote host")
-		stdout, stderr, res, err = conn.RunWithString(encodedCmd, "")
+		stdout, stderr, res, err = conn.RunWithString(encodedCmd, p.stdin)
 		log.Printf("[DEBUG] Powershell command exited with code %d", res)
 	} else {
 		log.Printf("[DEBUG] Creating local shell")
 		localShell := NewLocalPSSession()
 		log.Printf("[DEBUG] Executing command on local host")
-		stdout, stderr, res, err = localShell.ExecutePScmd(encodedCmd)
+		stdout, stderr, res, err = localShell.ExecutePScmdWithInput(p.stdin, encodedCmd)
 	}
 	defer conf.ReleaseWinRMClient(conn)
 

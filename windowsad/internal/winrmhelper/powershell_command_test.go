@@ -48,6 +48,15 @@ func TestNewPSCommand_WithCredentials(t *testing.T) {
 	if !strings.Contains(cmdStr, "ConvertTo-SecureString") {
 		t.Errorf("Command should contain ConvertTo-SecureString, got: %s", cmdStr)
 	}
+	if !strings.Contains(cmdStr, "[Console]::In.ReadToEnd()") {
+		t.Errorf("Command should read the credential password from stdin, got: %s", cmdStr)
+	}
+	if strings.Contains(cmdStr, "secretpass") {
+		t.Errorf("Command must not embed the credential password, got: %s", cmdStr)
+	}
+	if psCmd.stdin != "secretpass" {
+		t.Errorf("Credential password should be passed as stdin")
+	}
 	if !strings.Contains(cmdStr, "-Credential $Credential") {
 		t.Errorf("Command should contain -Credential $Credential, got: %s", cmdStr)
 	}
@@ -138,21 +147,21 @@ func TestNewPSCommand_SkipCredSuffix(t *testing.T) {
 	}
 }
 
-func TestNewPSCommand_PasswordRedactedInLog(t *testing.T) {
-	// This test verifies the password is not in the final command (it should be sanitized)
-	// The actual log redaction happens during command construction
+func TestNewPSCommand_PasswordNotEmbedded(t *testing.T) {
 	cmds := []string{"Get-ADUser"}
 	opts := CreatePSCommandOpts{
 		PassCredentials: true,
 		Username:        "admin",
-		Password:        "supersecret123",
+		Password:        `P@ss"$word` + "`",
 	}
 
 	psCmd := NewPSCommand(cmds, opts)
 
-	// The password should be in the command (sanitized for PowerShell)
-	if !strings.Contains(psCmd.String(), "supersecret123") {
-		t.Errorf("Password should be in the actual command string")
+	if strings.Contains(psCmd.String(), opts.Password) {
+		t.Errorf("Password must not be embedded in the PowerShell command")
+	}
+	if psCmd.stdin != opts.Password {
+		t.Errorf("Password should be passed as stdin unchanged")
 	}
 }
 
