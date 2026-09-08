@@ -264,6 +264,26 @@ func TestNewKerberosTransporter(t *testing.T) {
 	}
 }
 
+func TestKerberosUsername(t *testing.T) {
+	tests := []struct {
+		name     string
+		username string
+		expected string
+	}{
+		{name: "sam account name", username: "s-ad-terraform", expected: "s-ad-terraform"},
+		{name: "user principal name", username: "s-ad-terraform@ROOTTST.INT", expected: "s-ad-terraform"},
+		{name: "case preserving principal", username: "S-AD-TF@ROOTTST.INT", expected: "S-AD-TF"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if actual := kerberosUsername(tt.username); actual != tt.expected {
+				t.Fatalf("kerberosUsername(%q) = %q, want %q", tt.username, actual, tt.expected)
+			}
+		})
+	}
+}
+
 // TestClientPoolConcurrency tests thread safety of client pool
 func TestClientPoolConcurrency(t *testing.T) {
 	// This test verifies the mutex-protected pool doesn't race

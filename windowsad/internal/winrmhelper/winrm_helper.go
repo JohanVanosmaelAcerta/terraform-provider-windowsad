@@ -38,10 +38,16 @@ func NewLocalPSSession() *LocalPSSession {
 
 const defaultFailedCode = 1
 
-// ExecutePScmd will execute the powershell command using exec
+// ExecutePScmd will execute the powershell command using exec.
 func (l *LocalPSSession) ExecutePScmd(args ...string) (stdout string, stderr string, exitCode int, err error) {
+	return l.ExecutePScmdWithInput("", args...)
+}
+
+// ExecutePScmdWithInput executes the PowerShell command with optional standard input.
+func (l *LocalPSSession) ExecutePScmdWithInput(stdin string, args ...string) (stdout string, stderr string, exitCode int, err error) {
 	var outbuf, errbuf bytes.Buffer
 	cmd := exec.Command(l.powerShell, args...)
+	cmd.Stdin = strings.NewReader(stdin)
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 

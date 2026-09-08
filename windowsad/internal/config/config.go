@@ -145,6 +145,13 @@ type KerberosTransporter struct {
 	transport *http.Transport
 }
 
+func kerberosUsername(username string) string {
+	if principal, _, found := strings.Cut(username, "@"); found {
+		return principal
+	}
+	return username
+}
+
 func NewKerberosTransporter(settings *Settings) func() winrm.Transporter {
 	return func() winrm.Transporter {
 		return &KerberosTransporter{
@@ -250,10 +257,10 @@ func (c *KerberosTransporter) Post(_ *winrm.Client, request *soap.SoapMessage) (
 		if err != nil {
 			return "", err
 		}
-		kerberosClient = client.NewWithKeytab(c.Username, c.Domain, keytab, cfg, client.DisablePAFXFAST(true),
+		kerberosClient = client.NewWithKeytab(kerberosUsername(c.Username), c.Domain, keytab, cfg, client.DisablePAFXFAST(true),
 			client.AssumePreAuthentication(true))
 	} else {
-		kerberosClient = client.NewWithPassword(c.Username, c.Domain, c.Password, cfg, client.DisablePAFXFAST(true),
+		kerberosClient = client.NewWithPassword(kerberosUsername(c.Username), c.Domain, c.Password, cfg, client.DisablePAFXFAST(true),
 			client.AssumePreAuthentication(true))
 	}
 
